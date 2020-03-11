@@ -25,9 +25,9 @@ bool readFile(const std::string& fileName, size_t* size, TByte** prog)
         return false;
     }
 
-    input.seekg(0, std::ios_base::seekdir::end);
+    input.seekg(0, std::ios_base::end);
     *size = input.tellg();
-    input.seekg(0, std::ios_base::seekdir::beg);
+    input.seekg(0, std::ios_base::beg);
 
     *prog = new TByte[*size];
     input.read(reinterpret_cast<char*>(*prog), *size);

@@ -81,10 +81,12 @@ if (HAVE_LIBGEN)
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/path/platform/path_os_api_libgen.c)
 endif(HAVE_LIBGEN)
 
-if (HAVE_ARC4RAND)
+if (HAVE_ARC4RAND OR HAVE_BSD_ARC4RAND)
     message("Using BSD API for the random's seed module")
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/random/platform/seed_os_api_arc4r.c)
-endif(HAVE_ARC4RAND)
+else()
+    set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/random/platform/seed_os_api_time.c)
+endif(HAVE_ARC4RAND OR HAVE_BSD_ARC4RAND)
 
 add_library(
     melonscript-vm STATIC 
@@ -174,6 +176,10 @@ add_executable(
 )
 
 set(LINKLIBS melonscript-vm external cjson)
+
+if (UNIX)
+set(LINKLIBS ${LINKLIBS} bsd)
+endif(UNIX)
 
 target_link_libraries(assembler ${LINKLIBS})
 target_link_libraries(melon ${LINKLIBS})
