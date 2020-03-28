@@ -6,7 +6,6 @@
 #include "melon/core/object.h"
 #include "melon/core/array.h"
 
-#include <stdio.h>
 #include <assert.h>
 #include <string.h>
 
@@ -17,6 +16,7 @@ static Value compileFileKey;
 static Value importPathsKey;
 static Value fsKey;
 static Value isFileKey;
+static Value realPathKey;
 static Value pathKey;
 static Value dirnameKey;
 static Value namePlaceholder;
@@ -98,6 +98,24 @@ static TRet resolveModule(VM* vm, Value* curModuleDir, Value* rootDir, GCItem* m
 
         if (existsResult.type == MELON_TYPE_BOOL && existsResult.pack.value.boolean)
         {
+            Value* realPathClosure = melGetClosureFromModule(vm, &pathKey, &realPathKey);
+
+            // remove replacedStr that's still on the stack
+            melM_stackPop(&vm->stack);
+
+            melM_stackPush(&vm->stack, realPathClosure);
+            melM_vstackPushGCItem(&vm->stack, replacedStr);
+            
+            melCallClosureSyncVM(vm, 1, 0, 1);
+
+            Value* realPathResult = melM_stackTop(&vm->stack);
+
+            if (realPathResult->type == MELON_TYPE_NULL)
+            {
+                melM_stackPopCount(&vm->stack, 1);
+                return 1;
+            }
+
             return 0;
         }
     }
@@ -182,9 +200,21 @@ static void pushPathDirname(VM* vm, const char* path)
 TByte importModuleFunc(VM* vm)
 {
     melM_arg(vm, modName, MELON_TYPE_STRING, 0);
-    const char* modNameData = melM_strDataFromObj(modName->pack.obj);
+    melM_argOptional(vm, customModuleDir, MELON_TYPE_STRING, 1);
 
-    pushPathDirname(vm, getNearestFunctionFile(vm));
+    const char* modNameData = melM_strDataFromObj(modName->pack.obj);
+    const char* curModuleDirStr = NULL;
+
+    if (customModuleDir->type != MELON_TYPE_NULL)
+    {
+        curModuleDirStr = melM_strDataFromObj(customModuleDir->pack.obj);
+    }
+    else
+    {
+        curModuleDirStr = getNearestFunctionFile(vm);
+    }
+
+    pushPathDirname(vm, curModuleDirStr);
     melSetLocalVM(vm, melGetTopCallFrameVM(vm), 2, melM_stackPop(&vm->stack), 0);
     Value* curModuleDir = melGetArgModule(vm, "curModuleDir", 2, MELON_TYPE_STRING, 0);
 
@@ -254,7 +284,7 @@ TByte importModuleFunc(VM* vm)
 
 static const ModuleFunction funcs[] = {
     // name, args, locals, func
-    { NULL, 1, 3, importModuleFunc },
+    { NULL, 2, 3, importModuleFunc },
     { NULL, 0, 0, NULL }
 };
 
@@ -309,6 +339,11 @@ TRet melImportModuleInit(VM* vm)
     }
 
     if (melCreateKeyModule(vm, "isFile", &isFileKey) != 0)
+    {
+        return 1;
+    }
+
+    if (melCreateKeyModule(vm, "realpath", &realPathKey) != 0)
     {
         return 1;
     }

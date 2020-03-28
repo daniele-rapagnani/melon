@@ -41,17 +41,9 @@ static TByte getCallstackFunc(VM* vm)
         CallFrame* cf = melM_stackGet(&vm->callStack, i);
         
         Value funcNameVal;
-        funcNameVal.type = MELON_TYPE_STRING;
-
-        if (cf->function->name == NULL)
-        {
-            funcNameVal.pack.obj = melNewString(vm, "@anonymous@", strlen("@anonymous@"));
-        }
-        else
-        {
-            funcNameVal.pack.obj = cf->function->name;
-        }
-
+        funcNameVal.type = MELON_TYPE_CLOSURE;
+        funcNameVal.pack.obj = cf->closure;
+        
         melPushArray(vm, arr, &funcNameVal);
     }
 

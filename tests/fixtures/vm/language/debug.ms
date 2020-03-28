@@ -1,6 +1,6 @@
 func printStackNames => {
     for (let f in debug.getCallstack()) {
-        io.print(f);
+        io.print(function.getName(f));
     }
 }
 
