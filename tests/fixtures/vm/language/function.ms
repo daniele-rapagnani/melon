@@ -25,3 +25,6 @@ io.print(function.getName(func asd => {}));
 io.print(function.getArgsCount(test));
 io.print(function.getArgsCount(test2));
 io.print(function.getArgsCount(test3));
+
+io.print(function.getFile(test3));
+io.print(function.getFile(test3) == function.getFile(test));

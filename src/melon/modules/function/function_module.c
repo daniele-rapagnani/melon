@@ -62,11 +62,32 @@ static TByte getArgsCountFunc(VM* vm)
     return 1;
 }
 
+static TByte getFileFunc(VM* vm)
+{
+    melM_arg(vm, func, MELON_TYPE_CLOSURE, 0);
+    Closure* cl = melM_closureFromObj(func->pack.obj);
+    Function* fn = melM_functionFromObj(cl->fn);
+
+    Value res;
+    res.type = MELON_TYPE_NULL;
+
+    if (fn->debug.file != NULL)
+    {
+        res.type = MELON_TYPE_STRING;
+        res.pack.obj = melNewString(vm, fn->debug.file, strlen(fn->debug.file));
+    }
+
+    melM_stackPush(&vm->stack, &res);
+
+    return 1;
+}
+
 static const ModuleFunction funcs[] = {
     // name, args, locals, func
     { "call", 2, 0, &callFunc },
     { "getName", 1, 0, &getNameFunc },
     { "getArgsCount", 1, 0, &getArgsCountFunc },
+    { "getFile", 1, 0, &getFileFunc },
     { NULL, 0, 0, NULL }
 };
 

@@ -14,12 +14,19 @@ Cool Module!
 Cool Module!
 This is a side-effect
 This is a side-effect
-fixtures/vm/language/modules/module_obj.ms
+module_obj.ms
 Submodule found
 Number of cached modules:
 3
-fixtures/vm/language/modules/64/module_obj.mbc
+module_obj.mbc
 Submodule found
 Importing: modules/test_module
 Should only print once!
 Importing: modules/test_module
+Importing: modules/cache
+Importing: modules/././cache
+This value was cached
+Importing: modules/cached_user
+Importing: ./cache
+This value was cached
+Another cached value
