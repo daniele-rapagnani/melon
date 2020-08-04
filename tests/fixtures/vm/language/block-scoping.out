@@ -1,0 +1,41 @@
+test
+nested b
+nested c
+inner only
+top-level c
+null
+test changed
+value
+top-level b
+This is my inner func: 10
+This is my func
+My other func
+outer: 1
+inner: 1
+inner: 2
+inner: 3
+inner: 4
+outer: 2
+inner: 1
+inner: 2
+inner: 3
+inner: 4
+outer: 3
+inner: 1
+inner: 2
+inner: 3
+inner: 4
+outer: 4
+inner: 1
+inner: 2
+inner: 3
+inner: 4
+4
+3
+2
+1
+0
+inner b
+inner inner b
+outer a
+top-level c

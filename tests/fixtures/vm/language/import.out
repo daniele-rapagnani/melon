@@ -1,0 +1,30 @@
+##/??
+##/??.ms
+##/??.mbc
+##/??/index.ms
+##/??/index.mbc
+$$/mel_seeds/??.ms
+$$/mel_seeds/??.mbc
+$$/mel_seeds/??/index.ms
+$$/mel_seeds/??/index.mbc
+$$/mel_seeds/??
+??
+Should only print once!
+Cool Module!
+Cool Module!
+This is a side-effect
+This is a side-effect
+fixtures/vm/language/modules/module_obj.ms
+Submodule found
+Dumping modules cache:
+fixtures/vm/language/modules/submodule/index.ms
+[Closure @anonymous@]
+fixtures/vm/language/modules/side_effects.ms
+null
+fixtures/vm/language/modules/module_obj.ms
+[Object]
+fixtures/vm/language/modules/module_obj.mbc
+Submodule found
+Importing: modules/test_module
+Should only print once!
+Importing: modules/test_module

@@ -1,0 +1,25 @@
+{
+    "name": "melonscript-assembly",
+    "displayName": "melonscript-assembly",
+    "description": "MelonScript assembly syntax",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.39.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "melonscript-assembly",
+            "aliases": ["Melonscript Assembly", "melonscript-assembly"],
+            "extensions": [".ma"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "melonscript-assembly",
+            "scopeName": "source.melonscript-assembly",
+            "path": "./syntaxes/melonscript-assembly.tmLanguage.json"
+        }]
+    }
+}

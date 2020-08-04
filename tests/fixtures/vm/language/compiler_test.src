@@ -1,0 +1,9 @@
+func create |x| => {
+    return {
+        myStuff = => {
+            io.print("Working: " .. string.toString(x));
+        }
+    };
+}
+
+return create(10);

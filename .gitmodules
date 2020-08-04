@@ -1,0 +1,12 @@
+[submodule "src/melon/libs/catch2"]
+	path = src/melon/libs/catch2
+	url = git@github.com:catchorg/Catch2.git
+[submodule "src/melon/libs/csiphash"]
+	path = src/melon/libs/csiphash
+	url = git@github.com:majek/csiphash.git
+[submodule "src/melon/libs/cxxopts"]
+	path = src/melon/libs/cxxopts
+	url = git@github.com:jarro2783/cxxopts.git
+[submodule "src/melon/cJSON"]
+	path = src/melon/libs/cJSON
+	url = https://github.com/DaveGamble/cJSON

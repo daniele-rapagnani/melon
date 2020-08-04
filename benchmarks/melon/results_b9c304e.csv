@@ -1,0 +1,10 @@
+TEST NAME,TEST NUMBER,TIME,RESULT,CMD
+"array get",1,0.44,"5000000","../../build-release/melon -f"
+"array push",2,0.44,"10000000","../../build-release/melon -f"
+"assignments",3,0.49,"10000000","../../build-release/melon -f"
+"assignments iterators",4,0.41,"10000000","../../build-release/melon -f"
+"invokation",5,0.63,"10000000","../../build-release/melon -f"
+"nbody",6,7.56,"-0.169075164 -0.169096567","../../build-release/melon -f"
+"number sum",7,0.36,"999.999999821","../../build-release/melon -f"
+"objects get",8,0.99,"5000000","../../build-release/melon -f"
+"objects strings",9,0.01,"","../../build-release/melon -f"

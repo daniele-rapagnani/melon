@@ -1,0 +1,49 @@
+
+io.print(io.stdin);
+io.print(io.stderr);
+io.print(io.stdout);
+
+let textFile = io.open("fixtures/vm/language/io_text.txt", "r+");
+
+if (textFile == null)
+{
+    io.print("Can't open file");
+}
+else
+{
+    io.seek(textFile, 0, true);
+    io.print(io.tell(textFile, 0));
+    io.seek(textFile, 0);
+    io.print(io.size(textFile));
+    
+    io.print(io.read(textFile, 50));
+    io.print(io.read(textFile, 50));
+    io.seek(textFile, 0);
+    io.print(io.read(textFile, 50));
+    io.seek(textFile, -50, true);
+    io.print(io.read(textFile));
+    io.print(io.isEOF(textFile));
+    io.seek(textFile, -50, true);
+    io.print(io.read(textFile, 50));
+    io.print(io.isEOF(textFile));
+    io.close(textFile);
+}
+
+let textWrite = io.open("fixtures/vm/language/io_out.txt", "w+");
+
+if (textWrite == null)
+{
+    io.print("Can't open file for writing");
+}
+else
+{
+    io.write(textWrite, "This is my string");
+    io.write(textWrite, " this is another string");
+    io.flush(textWrite);
+    io.close(textWrite);
+
+    textWrite = io.open("fixtures/vm/language/io_out.txt", "r");
+
+    let content = io.read(textWrite);
+    io.print(content);
+}

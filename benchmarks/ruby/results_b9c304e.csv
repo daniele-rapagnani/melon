@@ -1,0 +1,8 @@
+TEST NAME,TEST NUMBER,TIME,RESULT,CMD
+"assignments",1,0.41,"10000000","ruby"
+"assignments iterators",2,0.59,"10000000","ruby"
+"invokation",3,1.39,"10000000","ruby"
+"nbody",4,0.09,"","ruby"
+"number sum",5,0.61,"999.9999998206155","ruby"
+"objects get",6,1.53,"5000000","ruby"
+"objects strings",7,7.42,"5000000","ruby"

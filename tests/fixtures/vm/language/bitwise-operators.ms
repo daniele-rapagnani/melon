@@ -1,0 +1,11 @@
+io.print(1 << 8);
+io.print(1 << 32);
+io.print((1 << 32) >> 32);
+io.print(((1 << 32) - 1) & 255);
+io.print(((1 << 32) - 1) & ((1 << 16) - 1));
+io.print(^9);
+io.print(^(1 << 8) + 1);
+io.print(10 ^^ 10);
+io.print(1 ^^ 2);
+io.print(255 | (255 << 8));
+io.print(1 | 2);

@@ -1,0 +1,10 @@
+TEST NAME,TEST NUMBER,TIME,RESULT,CMD
+"array get",1,0.77,"5000000","lua"
+"array push",2,1.35,"10000000","lua"
+"assignments",3,0.20,"10000000","lua"
+"assignments iterators",4,0.10,"10000000","lua"
+"invokation",5,0.43,"10000000","lua"
+"nbody",6,0.41,"-0.169075164 -0.169079859","lua"
+"number sum",7,0.08,"999.99999982062","lua"
+"objects get",8,0.41,"5000000","lua"
+"objects strings",9,8.56,"5000000","lua"

@@ -1,0 +1,152 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Melonscript Assembly",
+	"patterns": [
+		{ "include": "#func-declaration" },
+		{ "include": "#main-declaration"},
+		{ "include": "#text-section" }
+	],
+	"repository": {
+		"main-declaration": {
+			"name": "meta.function",
+			"begin": "(@main)\\s+(\\d+)",
+			"end": "@end",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.other"
+				},
+				"2": {
+					"name": "constant.numeric"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#data-section"
+				},
+				{
+					"include": "#text-section"
+				}
+			]
+		},
+		"func-declaration": {
+			"name": "meta.function",
+			"begin": "(@function)\\s+([a-zA-Z][a-zA-Z0-9]*)\\s+(\\d+)\\s+(\\d+)",
+			"end": "(@end)",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.other"
+				},
+				"2": {
+					"name": "entity.name.function"
+				},
+				"3": {
+					"name": "constant.numeric"
+				},
+				"4": {
+					"name": "constant.numeric"
+				}
+			},
+			"endCaptures": {
+				"1": {
+					"name": "keyword.other"	
+				}
+			},
+			"patterns": [
+				{
+					"match": "(\\+upvalue)\\s+(parent|stack)\\s+(\\d+)",
+					"captures": {
+						"1": {
+							"name": "keyword.command"
+						},
+						"2": {
+							"name": "constant.language"
+						},
+						"3": {
+							"name": "constant.numeric"
+						}
+					}
+				},
+				{ "include": "#func-declaration" },
+				{
+					"include": "#data-section"
+				},
+				{
+					"include": "#text-section"
+				}
+			]
+		},
+		"text-section": {
+			"begin": "(\\.text)",
+			"beginCaptures": {
+				"1": { "name": "keyword.other" }
+			},
+			"patterns": [
+				{ "include": "#instruction-void" },
+				{ "include": "#instruction-arg1" },
+				{ "include": "#instruction-arg-label" }
+			],
+			"end": "@end"
+		},
+		"data-section": {
+			"begin": "(\\.data)",
+			"beginCaptures": {
+				"1": { "name": "keyword.other" }
+			},
+			"patterns": [
+				{
+					"name": "entity.name",
+					"match": "([a-zA-Z][a-zA-Z0-9]*)",
+					"patterns": [
+						{
+							"name": "entity.name.method",
+							"match": "[a-zA-Z][a-zA-Z0-9]*"
+						}
+					]
+				}
+			],
+			"end": "\\.text"
+		},
+		"instruction-void": {
+			"name": "support.function",
+			"match": "(NOP|HALT|ADD|SUB|MUL|DIV|PUSHNULL|PUSHTRUE|PUSHFALSE|TESTTRUE|TESTFALSE|TESTNULL|EQ|GT|LT|LTE|GTE|NEWOBJ|SETOBJ|GETOBJ|POP|CONCAT|GC)",
+			"captures": {
+				"1": {
+					"name": "support.function"
+				},
+				"2": {
+					"name": "constant.numeric"
+				}
+			}
+		},
+		"instruction-arg1": {
+			"name": "support.function",
+			"match": "(PUSHLOC|STORELOC|PUSH|RETURN|DUMPINFO|PUSHUPVAL|STOREUPVAL|CALLTAIL|CALL|NEWCL|PUSHI)\\s+(\\d+)",
+			"captures": {
+				"1": {
+					"name": "support.function"
+				},
+				"2": {
+					"name": "constant.numeric"
+				}
+			}
+		},
+		"instruction-arg-label": {
+			"name": "support.function",
+			"match": "(JMP|PUSHK)\\s+([a-zA-Z][a-zA-Z0-9]*)",
+			"captures": {
+				"1": {
+					"name": "support.function"
+				},
+				"2": {
+					"name": "entity.name.method"
+				}
+			}
+		},
+		"string": {
+			"begin": "\"",
+			"end": "\"",
+			"name": "string.quoted.double"
+		}
+	},
+	"scopeName": "source.melonscript-assembly"
+}

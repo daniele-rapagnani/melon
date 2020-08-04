@@ -1,0 +1,14 @@
+5
+5
+10
+Error at null (1:7) - Invalid statement. Function call or variable assignment expected.
+Error at null (1:2) - Call or assignment expected
+Error at null (1:2) - Expected token 'RIGHT_PAREN' but found 'EOF'
+Error at null (1:2) - Call or assignment expected
+Error at null (1:6) - Invalid statement. Function call or variable assignment expected.
+25
+50
+null
+[Closure main]
+Working: 10
+Error at fixtures/vm/language/compiler_test_fail.src (1:6) - Invalid statement. Function call or variable assignment expected.

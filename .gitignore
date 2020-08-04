@@ -1,0 +1,6 @@
+.DS_Store
+build/*
+build-*/
+callgrind.out.*
+/benchmarks/benchmark_*.p
+/benchmarks/benchmark_*.png

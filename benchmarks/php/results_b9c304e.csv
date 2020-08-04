@@ -1,0 +1,7 @@
+TEST NAME,TEST NUMBER,TIME,RESULT,CMD
+"assignments",1,0.32,"10000000","php"
+"assignments iterators",2,0.30,"10000000","php"
+"invokations",3,0.57,"10000000","php"
+"number sum",4,0.27,"999.99999982062","php"
+"objects get",5,0.40,"5000000","php"
+"objects strings",6,1.29,"5000000","php"

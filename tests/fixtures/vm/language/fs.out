@@ -1,0 +1,15 @@
+exists(wrong) = false
+isFile(wrong) = false
+isDirectory(wrong) = false
+isReadable(wrong) = false
+isWritable(wrong) = false
+exists(fixtures/vm/language/fs_test_files) = true
+isFile(fixtures/vm/language/fs_test_files) = false
+isDirectory(fixtures/vm/language/fs_test_files) = true
+isReadable(fixtures/vm/language/fs_test_files) = true
+isWritable(fixtures/vm/language/fs_test_files) = true
+exists(fixtures/vm/language/fs_test_files/a_file.txt) = true
+isFile(fixtures/vm/language/fs_test_files/a_file.txt) = true
+isDirectory(fixtures/vm/language/fs_test_files/a_file.txt) = false
+isReadable(fixtures/vm/language/fs_test_files/a_file.txt) = true
+isWritable(fixtures/vm/language/fs_test_files/a_file.txt) = true

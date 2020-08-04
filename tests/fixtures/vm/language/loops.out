@@ -1,0 +1,100 @@
+Iteration: 10
+Iteration: 9
+Iteration: 8
+Iteration: 7
+Iteration: 6
+Iteration: 5
+Iteration: 4
+Iteration: 3
+Iteration: 2
+Iteration: 1
+Iteration: 0
+Keep going!
+Keep going!
+Keep going!
+Keep going!
+Keep going!
+For iteration: 0
+For iteration: 1
+For iteration: 2
+For iteration: 3
+For iteration: 4
+Not breaking: 0
+Not breaking: 1
+Not breaking: 2
+Not breaking: 3
+Not breaking: 4
+Not breaking: 5
+Not breaking: 6
+Not breaking: 7
+Not breaking: 8
+Not breaking: 9
+Not breaking inner: 0
+Not breaking inner: 1
+Not breaking inner: 2
+Not breaking inner: 3
+Not breaking inner: 4
+Not breaking inner: 5
+Not breaking inner: 6
+Not breaking inner: 7
+Not breaking inner: 8
+Not breaking inner: 9
+Not breaking outer: 0
+Not breaking inner: 0
+Not breaking inner: 1
+Not breaking inner: 2
+Not breaking inner: 3
+Not breaking inner: 4
+Not breaking inner: 5
+Not breaking inner: 6
+Not breaking inner: 7
+Not breaking inner: 8
+Not breaking inner: 9
+Not breaking outer: 1
+Not breaking inner: 0
+Not breaking inner: 1
+Not breaking inner: 2
+Not breaking inner: 3
+Not breaking inner: 4
+Not breaking inner: 5
+Not breaking inner: 6
+Not breaking inner: 7
+Not breaking inner: 8
+Not breaking inner: 9
+Not breaking outer: 2
+Not breaking inner: 0
+Not breaking inner: 1
+Not breaking inner: 2
+Not breaking inner: 3
+Not breaking inner: 4
+Not breaking inner: 5
+Not breaking inner: 6
+Not breaking inner: 7
+Not breaking inner: 8
+Not breaking inner: 9
+Continue passed: 1
+Continue passed: 3
+Continue passed: 5
+Continue passed: 7
+Continue passed: 9
+Continue outer passed: 2
+Continue inner passed: 1
+Continue inner passed: 3
+Continue inner passed: 5
+Continue inner passed: 7
+Continue inner passed: 9
+Continue outer passed: 4
+Continue inner passed: 1
+Continue inner passed: 3
+Continue inner passed: 5
+Continue inner passed: 7
+Continue inner passed: 9
+Running: 1
+Running: 3
+For value: 1
+For value: 3
+For value: 5
+For value: 1
+For value: 5
+For value: 7
+For value: 10

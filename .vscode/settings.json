@@ -1,0 +1,28 @@
+{
+    "files.associations": {
+        "*.html": "html",
+        "tstring.h": "c",
+        "value.h": "c",
+        "stdlib.h": "c",
+        "utils.h": "c",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "cmath": "cpp",
+        "cstdarg": "cpp",
+        "cstddef": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "cstring": "cpp",
+        "ctime": "cpp",
+        "cwchar": "cpp",
+        "cwctype": "cpp",
+        "symbol.h": "c",
+        "closure.h": "c",
+        "stack.h": "c",
+        "modules.h": "c",
+        "cassert": "cpp",
+        "program.h": "c",
+        "assert.h": "c",
+        "vm.h": "c"
+    }
+}
