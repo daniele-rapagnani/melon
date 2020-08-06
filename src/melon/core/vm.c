@@ -871,10 +871,13 @@ static void opPushArray(VM* vm)
     melM_stackPopCount(&vm->stack, 2);
 }
 
-static const TInt32 SLICE_COPY = 0;
-static const TInt32 SLICE_START = 1;
-static const TInt32 SLICE_END = 2;
-static const TInt32 SLICE_START_END = 3;
+static enum SliceType
+{
+    SLICE_COPY,
+    SLICE_START,
+    SLICE_END,
+    SLICE_START_END
+};
 
 static void opSlice(VM* vm, Instruction* i)
 {
