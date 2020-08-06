@@ -93,7 +93,7 @@ static void melCompileUnaryOp(Compiler* c);
 static void melCompileBinaryOp(Compiler* c, const Token* t);
 static void melCompileSuffixed(Compiler* c);
 
-static const TUint8 MAX_PRECEDENCE = 8;
+#define MAX_PRECEDENCE 8
 
 static struct Operator operators[] = {
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_NONE = 0, */
