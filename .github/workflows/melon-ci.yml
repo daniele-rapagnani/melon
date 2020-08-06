@@ -1,0 +1,28 @@
+name: Melon CI
+
+on:
+  push:
+    branches: [ develop, master ]
+  pull_request:
+    branches: [ develop, master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: "recursive"
+    - name: Install CMake
+      uses: Symbitic/install-cmake@v0.1.0
+      with:
+        cmake: "3.14.4"
+    - name: Run CMake
+      run: mkdir -p "${{ github.workspace }}/build" && cd "${{ github.workspace }}/build" && cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON ../
+    - name: Run Make
+      run: cd "${{ github.workspace }}/build" && make
+    - name: Run Tests
+      run: cd "${{ github.workspace }}/tests" && ../build/tests
+    
