@@ -138,6 +138,10 @@ add_library(
 
 add_subdirectory(src/melon/libs/cJSON)
 
+# Ignores the -Werror in cJSON that 
+# causes issue with NAN casting in clang
+target_compile_options(cjson PRIVATE -Wno-error)
+
 add_library(
     external STATIC
     src/melon/libs/csiphash/csiphash.c
