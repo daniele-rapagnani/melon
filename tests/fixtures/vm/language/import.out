@@ -16,13 +16,8 @@ This is a side-effect
 This is a side-effect
 fixtures/vm/language/modules/module_obj.ms
 Submodule found
-Dumping modules cache:
-fixtures/vm/language/modules/submodule/index.ms
-[Closure @anonymous@]
-fixtures/vm/language/modules/side_effects.ms
-null
-fixtures/vm/language/modules/module_obj.ms
-[Object]
+Number of cached modules:
+3
 fixtures/vm/language/modules/module_obj.mbc
 Submodule found
 Importing: modules/test_module

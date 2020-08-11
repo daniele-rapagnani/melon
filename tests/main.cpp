@@ -2,6 +2,7 @@
 #include "melon/libs/catch2/single_include/catch2/catch.hpp"
 #include <dirent.h>
 #include <fstream>
+#include <ios>
 
 extern "C" {
 #include "melon/melon.h"
@@ -81,12 +82,12 @@ namespace {
     TByte* readFile(const std::string& path, size_t* size, bool binary = false)
     {
         std::ifstream f;
-        f.open(path, std::ios_base::in | (binary ? std::ios_base::binary : 0));
+        f.open(path, std::ios_base::in | (binary ? std::ios_base::binary : static_cast<std::ios_base::openmode>(0)));
         REQUIRE(f.is_open());
 
-        f.seekg(0, std::ios_base::seekdir::end);
+        f.seekg(0, std::ios_base::end);
         *size = f.tellg();
-        f.seekg(0, std::ios_base::seekdir::beg);
+        f.seekg(0, std::ios_base::beg);
 
         TByte* prog = new TByte[*size];
         f.read(reinterpret_cast<char*>(prog), *size);

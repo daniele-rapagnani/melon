@@ -24,7 +24,7 @@ static TByte fromStringFunc(VM* vm)
             continue;
         }
 
-        if (!isnumber(str[i]))
+        if (!isdigit(str[i]))
         {
             arrVal->type = MELON_TYPE_NULL;
             return 1;

@@ -18,12 +18,8 @@ import("modules/side_effects");
 let moduleTest = import("modules/module_obj");
 moduleTest->printInfo();
 
-io.print("Dumping modules cache:");
-
-for (let c in import.cache) {
-    io.print(c);
-    io.print(import.cache[c]);
-}
+io.print("Number of cached modules:");
+io.print(#import.cache);
 
 import.paths = [
     "##/modules/??.mbc",

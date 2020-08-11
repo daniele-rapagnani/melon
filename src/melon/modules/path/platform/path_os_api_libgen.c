@@ -8,14 +8,20 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 static TRet transformPath(VM* vm, const Value* path, Value* result, char*(*transformFunc)(char *))
 {
     assert(path);
     assert(path->type == MELON_TYPE_STRING);
 
+    static char pathBuff[MELON_COMP_MAX_PATH_SIZE];
+
     char* pathData = melM_strDataFromObj(path->pack.obj);
-    const char* pathTransformed = transformFunc(pathData);
+    memset(&pathBuff, 0, MELON_COMP_MAX_PATH_SIZE);
+    memcpy(&pathBuff, pathData, melM_strFromObj(path->pack.obj)->len);
+    
+    const char* pathTransformed = transformFunc(pathBuff);
 
     if (pathTransformed == NULL)
     {

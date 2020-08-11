@@ -533,6 +533,11 @@ void melGetTimeHD(MelTimeHD* out)
 
     out->nanoSecs = clockTime.tv_nsec;
     out->secs = clockTime.tv_sec;
+#elif defined(unix) || defined(__unix__) || defined(__unix)
+    struct timespec ts;
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    out->nanoSecs = ts.tv_nsec;
+    out->secs = ts.tv_sec;
 #else
     #error melGetTimeHD is not implemented for this OS
 #endif
