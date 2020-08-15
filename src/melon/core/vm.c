@@ -871,7 +871,7 @@ static void opPushArray(VM* vm)
     melM_stackPopCount(&vm->stack, 2);
 }
 
-static enum SliceType
+enum SliceType
 {
     SLICE_COPY,
     SLICE_START,
@@ -1541,7 +1541,7 @@ static TRet melGenerateHashKey(VM* vm)
 
     for (TByte i = 0; i < MELON_VM_SIPHASH_KEY_SIZE; i++)
     {
-        vm->hashKey[i] = random() % 256;
+        vm->hashKey[i] = rand() % 256;
     }
 
     return 0;

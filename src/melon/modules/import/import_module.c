@@ -153,7 +153,7 @@ static const char* getNearestFunctionFile(VM* vm)
     return NULL;
 }
 
-static const char* getRootFunctinFile(VM* vm)
+static const char* getRootFunctionFile(VM* vm)
 {
     if (vm->callStack.top == 0)
     {
@@ -188,7 +188,7 @@ TByte importModuleFunc(VM* vm)
     melSetLocalVM(vm, melGetTopCallFrameVM(vm), 2, melM_stackPop(&vm->stack), 0);
     Value* curModuleDir = melGetArgModule(vm, "curModuleDir", 2, MELON_TYPE_STRING, 0);
 
-    pushPathDirname(vm, getRootFunctinFile(vm));
+    pushPathDirname(vm, getRootFunctionFile(vm));
     melSetLocalVM(vm, melGetTopCallFrameVM(vm), 3, melM_stackPop(&vm->stack), 0);
     Value* rootDir = melGetArgModule(vm, "rootDir", 3, MELON_TYPE_STRING, 0);
 

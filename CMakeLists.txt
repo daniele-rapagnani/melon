@@ -46,6 +46,7 @@ check_include_file("sys/stat.h" HAVE_POSIX_STAT)
 check_include_file("stdio.h" HAVE_STDIO)
 check_include_file("unistd.h" HAVE_UNISTD)
 check_include_file("libgen.h" HAVE_LIBGEN)
+check_include_file("windows.h" HAVE_WINDOWS)
 
 check_symbol_exists(arc4random_buf "stdlib.h" HAVE_ARC4RAND)
 
@@ -67,22 +68,25 @@ if (PROFILING_BUILD)
 endif (PROFILING_BUILD)
 
 if (HAVE_STDIO)
-    message("Using stdio API for the IO module")
+    message(STATUS "Using stdio API for the IO module")
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/io/platform/io_os_api_stdio.c)
 endif(HAVE_STDIO)
 
 if (HAVE_UNISTD AND HAVE_POSIX_STAT)
-    message("Using POSIX API for the FS module")
+    message(STATUS "Using POSIX API for the FS module")
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/fs/platform/fs_os_api_posix.c)
 endif(HAVE_UNISTD AND HAVE_POSIX_STAT)
 
-if (HAVE_LIBGEN)
-    message("Using POSIX API for the path module")
+if(HAVE_WINDOWS)
+    message(STATUS "Using Windows API for the path module")
+    set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/path/platform/path_os_api_windows.c)
+elseif (HAVE_LIBGEN)
+    message(STATUS "Using POSIX API for the path module")
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/path/platform/path_os_api_libgen.c)
-endif(HAVE_LIBGEN)
+endif()
 
 if (HAVE_ARC4RAND OR HAVE_BSD_ARC4RAND)
-    message("Using BSD API for the random's seed module")
+    message(STATUS "Using BSD API for the random's seed module")
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/random/platform/seed_os_api_arc4r.c)
 else()
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/random/platform/seed_os_api_time.c)
@@ -138,6 +142,12 @@ add_library(
 
     ${PLATFORM_SRCS}
 )
+
+if (MINGW)
+    message(STATUS Disabling stack protector as it is not supported on MinGW)
+    add_definitions(-fno-stack-protector)
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
+endif()
 
 add_subdirectory(src/melon/libs/cJSON)
 

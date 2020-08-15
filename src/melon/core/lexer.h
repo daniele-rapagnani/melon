@@ -65,11 +65,11 @@ typedef enum {
     MELON_TOKEN_QUESTIONQUESTION,
     MELON_TOKEN_ELLIPSIS,
     MELON_TOKEN_EOF
-} TokenType;
+} MelTokenType;
 
 typedef struct Token 
 {
-    TokenType type;
+    MelTokenType type;
     const char* start;
     TUint32 len;
     TSize line;
@@ -108,10 +108,10 @@ TRet melAdvanceLexer(Lexer* l);
 const Token* melCurTokenLexer(Lexer* l);
 const Token* melPeekLexer(Lexer* l);
 TRet melPopLexer(Lexer* l, Token* outToken);
-TRet melPopTypeLexer(Lexer* l, TokenType t);
-TRet melCheckTokenLexer(Lexer* l, TokenType t);
-TRet melCheckPeekedTokenLexer(Lexer* l, TokenType t);
-TRet melEnsureTokenLexer(Lexer* l, TokenType t);
-TRet melAdvanceIfTypeLexer(Lexer* l, TokenType t);
+TRet melPopTypeLexer(Lexer* l, MelTokenType t);
+TRet melCheckTokenLexer(Lexer* l, MelTokenType t);
+TRet melCheckPeekedTokenLexer(Lexer* l, MelTokenType t);
+TRet melEnsureTokenLexer(Lexer* l, MelTokenType t);
+TRet melAdvanceIfTypeLexer(Lexer* l, MelTokenType t);
 
 #endif // __melon__lexer_h__

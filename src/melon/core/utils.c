@@ -14,6 +14,8 @@
 #elif defined(unix) || defined(__unix__) || defined(__unix)
 #include <time.h>
 #include <sys/time.h>
+#elif defined(__MINGW32__)
+#include <windows.h>
 #endif
 
 #include <stdarg.h>
@@ -551,6 +553,27 @@ void melGetTimeHD(MelTimeHD* out)
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
     out->nanoSecs = ts.tv_nsec;
     out->secs = ts.tv_sec;
+#elif defined(__MINGW32__)
+    LARGE_INTEGER li;
+
+    if(!QueryPerformanceFrequency(&li))
+    {
+        assert(0);
+    }
+
+    LARGE_INTEGER freq;
+
+    if (!QueryPerformanceFrequency(&freq))
+    {
+        assert(0);
+    }
+
+    LARGE_INTEGER res;
+    res.QuadPart = li.QuadPart / freq.QuadPart;
+    res.QuadPart *= 1000000000;
+
+    out->secs = res.QuadPart / 1000000000;
+    out->nanoSecs = res.QuadPart % 1000000000;
 #else
     #error melGetTimeHD is not implemented for this OS
 #endif
