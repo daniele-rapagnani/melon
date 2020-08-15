@@ -259,7 +259,7 @@ namespace {
         closedir(dir);
     }
 
-    void assertToken(const std::string& source, TokenType type, uint32_t len)
+    void assertToken(const std::string& source, MelTokenType type, uint32_t len)
     {
         Lexer lexer;
         REQUIRE(melCreateLexer(&lexer, source.c_str(), source.size()) == 0);

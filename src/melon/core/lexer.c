@@ -171,7 +171,7 @@ static TRet melAdvanceMatchChar(Lexer* l, char c)
     return 1;
 }
 
-static void setToken(Token* t, TokenType type)
+static void setToken(Token* t, MelTokenType type)
 {
     t->type = type;
 }
@@ -279,13 +279,13 @@ static TUint32 melCheckKeyword(Lexer* l, const char* keyword)
     return keywordLen;
 }
 
-static void melMakeToken(Lexer* l, TokenType t, TUint32 len)
+static void melMakeToken(Lexer* l, MelTokenType t, TUint32 len)
 {
     l->futureToken.type = t;
     l->futureToken.len = len;
 }
 
-static void melMakeTokenAndAdvance(Lexer* l, TokenType t, TUint32 len)
+static void melMakeTokenAndAdvance(Lexer* l, MelTokenType t, TUint32 len)
 {
     melMakeToken(l, t, len);
     melSkipChars(l, len);
@@ -594,7 +594,7 @@ TRet melAdvanceLexer(Lexer* l)
     return 0;
 }
 
-static void melPrintError(Lexer* l, TokenType expected, TokenType actual)
+static void melPrintError(Lexer* l, MelTokenType expected, MelTokenType actual)
 {
     struct StrFormat sf;
     memset(&sf, 0, sizeof(struct StrFormat));
@@ -623,7 +623,7 @@ TRet melPopLexer(Lexer* l, Token* outToken)
     return 0;
 }
 
-TRet melAdvanceIfTypeLexer(Lexer* l, TokenType t)
+TRet melAdvanceIfTypeLexer(Lexer* l, MelTokenType t)
 {
     if (melCurTokenLexer(l)->type != t)
     {
@@ -633,7 +633,7 @@ TRet melAdvanceIfTypeLexer(Lexer* l, TokenType t)
     return melAdvanceLexer(l);
 }
 
-TRet melPopTypeLexer(Lexer* l, TokenType t)
+TRet melPopTypeLexer(Lexer* l, MelTokenType t)
 {
     if (melAdvanceIfTypeLexer(l, t) != 0)
     {
@@ -644,7 +644,7 @@ TRet melPopTypeLexer(Lexer* l, TokenType t)
     return 0;
 }
 
-TRet melEnsureTokenLexer(Lexer* l, TokenType t)
+TRet melEnsureTokenLexer(Lexer* l, MelTokenType t)
 {
     if (melCheckTokenLexer(l, t) != 0)
     {
@@ -655,7 +655,7 @@ TRet melEnsureTokenLexer(Lexer* l, TokenType t)
     return 0;
 }
 
-TRet melCheckTokenLexer(Lexer* l, TokenType t)
+TRet melCheckTokenLexer(Lexer* l, MelTokenType t)
 {
     if (melCurTokenLexer(l) == NULL)
     {
@@ -665,7 +665,7 @@ TRet melCheckTokenLexer(Lexer* l, TokenType t)
     return melCurTokenLexer(l)->type == t ? 0 : 1;
 }
 
-TRet melCheckPeekedTokenLexer(Lexer* l, TokenType t)
+TRet melCheckPeekedTokenLexer(Lexer* l, MelTokenType t)
 {
     if (melPeekLexer(l) == NULL)
     {
