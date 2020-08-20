@@ -177,10 +177,6 @@ add_executable(
 
 set(LINKLIBS melonscript-vm external cjson)
 
-if (UNIX)
-set(LINKLIBS ${LINKLIBS} bsd)
-endif(UNIX)
-
 target_link_libraries(assembler ${LINKLIBS})
 target_link_libraries(melon ${LINKLIBS})
 target_link_libraries(disassembler ${LINKLIBS})
