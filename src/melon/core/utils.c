@@ -29,6 +29,19 @@ static void stringFmtResize(struct StrFormat* sf, TSize newSize)
     melGrowBuffer((void**)&sf->buffer, &sf->size, sizeof(TByte), sf->used + newSize + 1);
 }
 
+void melStringFmtWriteChar(struct StrFormat* sf, char c)
+{
+    stringFmtResize(sf, sf->used + 1);
+    sf->buffer[sf->used++] = c;
+}
+
+void melStringFmtWriteCharAt(struct StrFormat* sf, char c, TSize idx)
+{
+    stringFmtResize(sf, idx + 1);
+    sf->buffer[idx] = c;
+    sf->used = melM_max(sf->used, idx);
+}
+
 void melStringFmtUtils(struct StrFormat* sf, const char* fmt, ...)
 {
     va_list args;

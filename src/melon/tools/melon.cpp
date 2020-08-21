@@ -80,7 +80,8 @@ int main(int argc, char** argv)
         if (strcmp(argvc[i], "--") == 0 && argcc - i > 0)
         {
             rargc = argcc - (i + 1);
-            rargv = (const char**)&argv[i + 1];
+            rargv = (const char**)&argvc[i + 1];
+            break;
         }
     }
 

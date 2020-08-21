@@ -3,6 +3,7 @@
 #include "melon/modules/modules.h"
 #include "melon/core/utils.h"
 #include "melon/core/tstring.h"
+#include "melon/core/array.h"
 #include "melon/core/object.h"
 
 #include <stdio.h>
@@ -201,44 +202,51 @@ static TByte isEOFFileFunction(VM* vm)
 
 static TByte printLineFunction(VM* vm)
 {
-    Value* arg = melGetLocalVM(vm, melGetTopCallFrameVM(vm), 0, 0);
+    melM_arg(vm, arg, MELON_TYPE_ARRAY, 0);
 
     Value* toStringFunc = melGetClosureFromModule(vm, &stringUtilsKey, &toStringKey);
-
-    melM_stackPush(&vm->stack, toStringFunc);
-    melM_stackPush(&vm->stack, arg);
-
-    melCallClosureSyncVM(vm, 1, 0, 1);
-
-    Value* stringResult = melM_stackOffset(&vm->stack, 0);
-
-    if (stringResult->type != MELON_TYPE_STRING)
-    {
-        melM_fatal(vm, "The toString function should always return a string.");
-        return 0;
-    }
+    Array* argArr = melM_arrayFromObj(arg->pack.obj);
 
     struct StrFormat sf;
     memset(&sf, 0, sizeof(struct StrFormat));
 
-    melStringFmtUtils(
-        &sf, 
-        "%.*s\n", 
-        melM_strFromObj(stringResult->pack.obj)->len, 
-        melM_strDataFromObj(stringResult->pack.obj)
-    );
+    for (TSize i = 0; i < argArr->count; i++)
+    {
+        melM_stackPush(&vm->stack, toStringFunc);
+        melM_stackPush(&vm->stack, melGetIndexArray(vm, arg->pack.obj, i));
 
+        melCallClosureSyncVM(vm, 1, 0, 1);
+
+        Value* stringResult = melM_stackOffset(&vm->stack, 0);
+
+        if (stringResult->type != MELON_TYPE_STRING)
+        {
+            melM_fatal(vm, "The toString function should always return a string.");
+            return 0;
+        }
+
+        melStringFmtUtils(
+            &sf, 
+            "%.*s%s", 
+            melM_strFromObj(stringResult->pack.obj)->len, 
+            melM_strDataFromObj(stringResult->pack.obj),
+            i < argArr->count - 1 ? " " : ""
+        );
+
+        // Remove the string now
+        melM_stackPop(&vm->stack);
+    }
+
+    melStringFmtWriteChar(&sf, '\n');
     melPrintVM(vm, &sf);
-
-    // Remove the string now
-    melM_stackPop(&vm->stack);
+    melStringFmtFreeUtils(&sf);
 
     return 0;
 }
 
 static const ModuleFunction funcs[] = {
     // name, args, locals, func
-    { "print", 1, 0, printLineFunction },
+    { "print", 1, 0, printLineFunction, 0, 1 },
     { "open", 2, 0, openFileFunction },
     { "close", 1, 0, closeFileFunction },
     { "read", 2, 0, readFileFunction },
