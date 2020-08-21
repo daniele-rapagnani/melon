@@ -47,3 +47,5 @@ else
     let content = io.read(textWrite);
     io.print(content);
 }
+
+io.print("Mutiple", "prints", 5, {}, true);

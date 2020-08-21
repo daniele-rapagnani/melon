@@ -16,6 +16,8 @@ struct StrFormat
     char* buffer;
 };
 
+void melStringFmtWriteChar(struct StrFormat* sf, char c);
+void melStringFmtWriteCharAt(struct StrFormat* sf, char c, TSize idx);
 void melStringFmtUtils(struct StrFormat* sf, const char* fmt, ...);
 void melStringFmtVargsUtils(struct StrFormat* sf, const char* fmt, va_list args);
 void melStringFmtFreeUtils(struct StrFormat* sf);

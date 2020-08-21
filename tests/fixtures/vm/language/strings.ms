@@ -62,3 +62,15 @@ testTrim("");
 testTrim("     ");
 testTrim("          ");
 testTrim("          asdasd                  ");
+
+io.print(string.format("Hello World"));
+io.print(string.format("Hello %s", "World"));
+io.print(string.format("%-10s % 10s", "Hello", "World"));
+if (string.format("Object: %p", {}) != null) {
+    io.print("Pointer works");
+}
+io.print(string.format("Hex: %x", 10));
+io.print(string.format("Hex: %X", 10));
+io.print(string.format("Padded number: %015d", 10));
+io.print(string.format("Float precision: %.2f", 1.12345));
+io.print(string.format("Padded float: %015.2f", math.pi));

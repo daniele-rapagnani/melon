@@ -36,6 +36,7 @@ TRet melNewModule(VM* vm, const ModuleFunction* functions)
         f->args = curFunc->args;
         f->native = curFunc->func;
         f->method = curFunc->method;
+        f->rest = curFunc->rest;
 
         if (curFunc->name != NULL)
         {
