@@ -1,4 +1,5 @@
 #include "melon/modules/string/string_module.h"
+#include "melon/modules/string/format.h"
 
 #include "melon/modules/modules.h"
 #include "melon/core/closure.h"
@@ -410,6 +411,22 @@ static TByte trim(VM* vm)
     return 1;
 }
 
+static TByte format(VM* vm)
+{
+    melM_arg(vm, fmt, MELON_TYPE_STRING, 0);
+    melM_arg(vm, args, MELON_TYPE_ARRAY, 1);
+
+    melM_vstackPushNull(&vm->stack);
+    Value* res = melM_stackTop(&vm->stack);
+    
+    if (melFormat(vm, res, fmt->pack.obj, args->pack.obj) != 0)
+    {
+        res->type = MELON_TYPE_NULL;
+    }
+
+    return 1;
+}
+
 static const ModuleFunction funcs[] = {
     // name, args, locals, func
     { "toString", 1, 0, toString },
@@ -421,6 +438,7 @@ static const ModuleFunction funcs[] = {
     { "toUpper", 1, 0, toUpper },
     { "toCapitalized", 1, 0, toCapitalized },
     { "trim", 1, 0, trim },
+    { "format", 2, 0, format, 0, 1 },
     { NULL, 0, 0, NULL }
 };
 

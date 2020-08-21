@@ -114,13 +114,14 @@ add_library(
     src/melon/core/strings_table_openaddr.c
     src/melon/core/strings_table_chaining.c
     src/melon/core/opcodes.c
-
+    
     src/melon/modules/modules.c
     src/melon/modules/io/io_module.c
     src/melon/modules/fs/fs_module.c
     src/melon/modules/path/path_module.c
     src/melon/modules/import/import_module.c
     src/melon/modules/string/string_module.c
+    src/melon/modules/string/format.c
     src/melon/modules/object/object_module.c
     src/melon/modules/json/json_module.c
     src/melon/modules/math/math_module.c

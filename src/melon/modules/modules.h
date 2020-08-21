@@ -28,6 +28,7 @@ typedef struct ModuleFunction
     TUint16 localSlots;
     NativeFunctionPtr func;
     TBool method;
+    TBool rest;
 } ModuleFunction;
 
 TRet melNewModule(VM* vm, const ModuleFunction* functions);

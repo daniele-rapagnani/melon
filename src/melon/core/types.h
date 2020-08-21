@@ -4,6 +4,7 @@
 #include "melon/core/config.h"
 
 #include <stdint.h>
+#include <stddef.h>
 
 typedef uint8_t TUint8;
 typedef int8_t TInt8;
@@ -25,7 +26,7 @@ typedef TUint64 TUInteger;
 typedef double TNumber;
 
 typedef TSize TConstantID;
-typedef TUint64 TPtr;
+typedef uintptr_t TPtr;
 typedef TUint32 TVMInst;
 typedef TUint32 TVMInstK;
 typedef TInt32 TVMInstSK;
