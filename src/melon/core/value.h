@@ -25,7 +25,7 @@
 #define MELON_TYPE_MAX_ID    15
 
 // The maximum number of character a 64 bit number can take
-#define MELON_MAX_INT64_CHAR_COUNT 19
+#define MELON_MAX_INT64_CHAR_COUNT 21
 #define MELON_MAX_NUMBER_CHAR_COUNT 128
 
 #define melM_isGCItem(x) ((x)->type > MELON_TYPE_MAX_BOXED)
