@@ -39,4 +39,5 @@ for FILE in $FILES; do
 	fi
 done
 
-"$SCRIPT/../$BUILD_DIR/melon" -f fixtures/vm/language/modules/module_obj.ms -o fixtures/vm/language/modules/module_obj.mbc
+mkdir -p "fixtures/vm/language/modules/$BITS"
+"$SCRIPT/../$BUILD_DIR/melon" -f fixtures/vm/language/modules/module_obj.ms -o "fixtures/vm/language/modules/$BITS/module_obj.mbc"
