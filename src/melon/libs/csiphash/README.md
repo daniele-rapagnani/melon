@@ -57,7 +57,7 @@ int main() {
     char key[16] = {0,1,2,3,4,5,6,7,8,9,0xa,0xb,0xc,0xd,0xe,0xf};
     char *pt = "hello world!";
     uint64_t hash = siphash24(pt, strlen(pt), key);
-    printf("plaintext=%s hash=%llu\n", pt, hash);
+    printf("plaintext=%s hash=" MELON_PRINTF_SIZE "\n", pt, hash);
     return 0;
 }
 ```

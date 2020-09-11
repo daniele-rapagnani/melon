@@ -76,7 +76,7 @@ static void growStringsTable(StringsTable* st)
     st->strings = realloc(st->strings, sizeof(StringsEntry) * st->capacity);
     memset(st->strings + oldCapacity, 0, sizeof(StringsEntry) * oldCapacity);
 
-    TUint64 newBitMask = (st->capacity - 1) & (~(oldCapacity - 1));
+    TSize newBitMask = (st->capacity - 1) & (~(oldCapacity - 1));
 
     for(TSize i = 0; i <= oldCapacity; i++)
     {
@@ -124,7 +124,7 @@ char* melAddStringStringsTable(StringsTable* st, const char* str, TSize len, TSi
         else if (entry->len == len && strncmp(entry->string, str, len) == 0)
         {
             entry->refCount++;
-            //printf("[Strings Table] found: %.*s, refcount = %llu\n", len, str, entry->refCount);
+            //printf("[Strings Table] found: %.*s, refcount = " MELON_PRINTF_SIZE "\n", len, str, entry->refCount);
             return entry->string;
         }
     }
@@ -150,7 +150,7 @@ TRet melRemoveStringStringsTable(StringsTable* st, const char* str, TSize len, T
             assert(entry->refCount > 0);
             entry->refCount--;
 
-            //printf("[Strings Table] removing: %.*s, refcount = %llu\n", len, str, entry->refCount);
+            //printf("[Strings Table] removing: %.*s, refcount = " MELON_PRINTF_SIZE "\n", len, str, entry->refCount);
 
             if (entry->refCount == 0)
             {

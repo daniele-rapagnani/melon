@@ -1,0 +1,9 @@
+Stack top: 4
+
+Stack:
+---
+0) 100 : TInteger
+1) 4 : TInteger
+2) 4 : TInteger
+3) Array(size = 4) : TArray
+---

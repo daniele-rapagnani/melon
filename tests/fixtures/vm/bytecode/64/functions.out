@@ -1,0 +1,10 @@
+Stack top: 5
+
+Stack:
+---
+0) "You provided two args" : TString
+1) "You provided one arg" : TString
+2) "Rolling Rolling Rolling Rolling Rolling Rolling Rolling Rolling Rolling Rolling " : TString
+3) "This is the result: Hello, Wiskers!" : TString
+4) "This is the result: Hello, Fuffy!" : TString
+---

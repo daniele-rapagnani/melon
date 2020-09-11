@@ -27,22 +27,22 @@
 #define melM_writeOp1_s25(c, op, v) \
     melUpdateSourceLine(c); \
     melSerializerWriteOp1_s25(&((c)->serializer), op, v); \
-    melM_log("%llu: %s %ld\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(v))
+    melM_log("" MELON_PRINTF_SIZE ": %s %ld\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(v))
 
 #define melM_writeOp1_25(c, op, v) \
     melUpdateSourceLine(c); \
     melSerializerWriteOp1_25(&((c)->serializer), op, v); \
-    melM_log("%llu: %s %llu\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(v))
+    melM_log("" MELON_PRINTF_SIZE ": %s " MELON_PRINTF_SIZE "\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(v))
 
 #define melM_writeOp2_13(c, op, a, b) \
     melUpdateSourceLine(c); \
     melSerializerWriteOp2_13(&((c)->serializer), op, a, b); \
-    melM_log("%llu: %s %llu %llu\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(a), (TInteger)(b))
+    melM_log("" MELON_PRINTF_SIZE ": %s " MELON_PRINTF_SIZE " " MELON_PRINTF_SIZE "\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(a), (TInteger)(b))
 
 #define melM_writeOpVoid(c, op) \
     melUpdateSourceLine(c); \
     melSerializerWriteOpVoid(&((c)->serializer), op); \
-    melM_log("%llu: %s\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op)
+    melM_log("" MELON_PRINTF_SIZE ": %s\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op)
 
 typedef void(*CompileCb)(Compiler* c);
 typedef void(*CompileDeferedCb)(Compiler* c, const Token* t);

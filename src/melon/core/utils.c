@@ -357,7 +357,7 @@ struct StrFormat melDumpUpvaluesUtils(VM* vm)
     memset(&sf, 0, sizeof(struct StrFormat));
 
     Upvalue* i = vm->openUpvalues;
-    TUint64 count = 0;
+    TSize count = 0;
 
     melStringFmtUtils(&sf, "Upvalues: \n\n");
 
@@ -396,10 +396,10 @@ struct StrFormat melDumpGCInfoUtils(VM* vm, TBool includeSize)
 
     if (includeSize)
     {
-        melStringFmtUtils(&sf, "GC Allocated Bytes: %llu\n", vm->gc.usedBytes);
+        melStringFmtUtils(&sf, "GC Allocated Bytes: " MELON_PRINTF_SIZE "\n", vm->gc.usedBytes);
     }
 
-    melStringFmtUtils(&sf, "GC Allocated Objs: %llu\n", vm->gc.whitesCount);
+    melStringFmtUtils(&sf, "GC Allocated Objs: " MELON_PRINTF_SIZE "\n", vm->gc.whitesCount);
 
     return sf;
 }
@@ -501,7 +501,7 @@ void melPrintErrorAtSourceUtils(
 
     if (line > 0)
     {
-        melStringFmtUtils(&sf, " (at line %lld:%lld):\n\n", line, col);
+        melStringFmtUtils(&sf, " (at line " MELON_PRINTF_INT ":" MELON_PRINTF_INT "):\n\n", line, col);
     }
     else
     {

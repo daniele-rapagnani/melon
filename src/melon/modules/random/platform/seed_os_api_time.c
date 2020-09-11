@@ -2,7 +2,7 @@
 
 #include <time.h>
 
-void melGetRandomSeed(TUint64* seed)
+void melGetRandomSeed(TSize* seed)
 {
     *seed = time(NULL);
 }

@@ -77,7 +77,7 @@ GCItem* melNewObject(VM* vm)
     memset(objObj->table, 0, objObj->capacity * sizeof(struct ObjectNode*));
 
 #ifdef _TRACK_ALLOCATIONS_GC
-    printf("Allocated obj of size %llu (%p), total bytes allocated = %llu\n", objSize + sizeof(GCItem), obj, vm->gc.usedBytes);
+    printf("Allocated obj of size " MELON_PRINTF_SIZE " (%p), total bytes allocated = " MELON_PRINTF_SIZE "\n", objSize + sizeof(GCItem), obj, vm->gc.usedBytes);
 #endif
 
     return obj;
@@ -95,7 +95,7 @@ TRet melFreeObject(VM* vm, GCItem* obj)
     TSize size = sizeof(Object);
 
 #ifdef _TRACK_ALLOCATIONS_GC
-    printf("Freeing object of %llu bytes (%p), total bytes now = %llu\n", size + sizeof(GCItem), obj, vm->gc.usedBytes - (size + sizeof(GCItem)));
+    printf("Freeing object of " MELON_PRINTF_SIZE " bytes (%p), total bytes now = " MELON_PRINTF_SIZE "\n", size + sizeof(GCItem), obj, vm->gc.usedBytes - (size + sizeof(GCItem)));
 #endif
 
     vm->gc.usedBytes -= size;
@@ -133,8 +133,8 @@ static void resizeBuckets(VM* vm, Object* obj)
     obj->table = realloc(obj->table, sizeof(struct ObjectNode*) * obj->capacity);
     memset(obj->table + oldCapacity, 0, sizeof(struct ObjectNode*) * oldCapacity);
 
-    TUint64 newBitMask = (obj->capacity - 1) & (~(oldCapacity - 1));
-    TUint64 newBucket = 0;
+    TSize newBitMask = (obj->capacity - 1) & (~(oldCapacity - 1));
+    TSize newBucket = 0;
 
     for(TSize i = 0; i < oldCapacity; i++)
     {
@@ -172,7 +172,7 @@ static void resizeBuckets(VM* vm, Object* obj)
     }
 }
 
-static void insertObjectNode(VM* vm, Object* obj, TSize bucket, Value* key, Value* value, TUint64 hash)
+static void insertObjectNode(VM* vm, Object* obj, TSize bucket, Value* key, Value* value, TValueHash hash)
 {
     struct ObjectNode* node = malloc(sizeof(struct ObjectNode));
     assert(node != NULL);
@@ -256,14 +256,14 @@ static struct ObjectNode* checkValue(VM* vm, Object* obj, TSize bucket, Value* k
 Value* melGetValueObject(VM* vm, GCItem* obj, Value* key)
 {
     Object* objObj = melM_objectFromObj(obj);
-    TUint64 hash = 0;
+    TValueHash hash = 0;
     
     if (melGetHashValue(vm, key, &hash) != 0)
     {
         return NULL;
     }
 
-    TUint64 bucket = melM_bucket(objObj, hash);
+    TSize bucket = melM_bucket(objObj, hash);
     struct ObjectNode* entry = checkValue(vm, objObj, bucket, key, hash);
 
     return entry != NULL ? &entry->value : NULL;
@@ -345,7 +345,7 @@ GCItem* melResolveSymbolObject(VM* vm, GCItem* obj, MelonObjectSymbols op)
 TRet melRemoveKeyObject(VM* vm, GCItem* obj, Value* key)
 {
     Object* objObj = melM_objectFromObj(obj);
-    TUint64 hash = 0;
+    TValueHash hash = 0;
     
     if (melGetHashValue(vm, key, &hash) != 0)
     {
@@ -430,7 +430,7 @@ Value* melGetKeyAtIndexObject(VM* vm, GCItem* obj, TSize index, TBool withSymbol
 TRet melSetValueObject(VM* vm, GCItem* obj, Value* key, Value* value)
 {
     Object* objObj = melM_objectFromObj(obj);
-    TUint64 hash = 0;
+    TValueHash hash = 0;
     
     if (melGetHashValue(vm, key, &hash) != 0)
     {

@@ -59,7 +59,16 @@ TRet melToString(VM* vm, const Value* se)
         case MELON_TYPE_INTEGER:
             {
                 static char number[MELON_MAX_INT64_CHAR_COUNT];
-                snprintf(number, MELON_MAX_INT64_CHAR_COUNT, "%lld", se->pack.value.integer);
+                snprintf(
+                    number, 
+                    MELON_MAX_INT64_CHAR_COUNT, 
+#ifdef MELON_64BIT
+                    "" MELON_PRINTF_INT "",
+#else
+                    "%ld",
+#endif
+                    se->pack.value.integer
+                );
                 newString = melNewString(vm, number, strlen(number));
             }
             break;
@@ -281,8 +290,8 @@ static TByte find(VM* vm)
     melM_arg(vm, needle, MELON_TYPE_STRING, 1);
     melM_argOptional(vm, start, MELON_TYPE_INTEGER, 2);
 
-    TUint64 index;
-    TUint64 startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
+    TSize index;
+    TSize startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
     Value result;
 
     if (melFirstIndexOfString(vm, haystack->pack.obj, needle->pack.obj, startIndex, &index) == 0)
@@ -308,9 +317,9 @@ static TByte replace(VM* vm)
     melM_argOptional(vm, start, MELON_TYPE_INTEGER, 3);
     melM_argOptional(vm, end, MELON_TYPE_INTEGER, 4);
 
-    TUint64 index;
-    TUint64 startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
-    TUint64 endIndex = end->type == MELON_TYPE_NULL ? 0 : end->pack.value.integer;
+    TSize index;
+    TSize startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
+    TSize endIndex = end->type == MELON_TYPE_NULL ? 0 : end->pack.value.integer;
 
     GCItem* newStr = melNewReplaceString(
         vm,
@@ -397,7 +406,9 @@ static TByte trim(VM* vm)
 
     assert((frontSpacesCount + backSpacesCount) <= strObj->len);
 
-    GCItem* newStr = melNewDataString(vm, strObj->len - frontSpacesCount - backSpacesCount);
+    TSize totalLen = strObj->len - frontSpacesCount - backSpacesCount;
+    GCItem* newStr = melNewDataString(vm, totalLen);
+
     melM_vstackPushGCItem(&vm->stack, newStr);
 
     char* resData = melM_strDataFromObj(newStr);

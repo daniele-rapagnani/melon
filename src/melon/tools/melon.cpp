@@ -28,7 +28,16 @@ int main(int argc, char** argv)
 
     if (result.count("v") > 0)
     {
-        std::cout << "Melon " MELON_VERSION << std::endl;
+        std::cout 
+            << "Melon " MELON_VERSION 
+#if defined(MELON_64BIT)
+            "-64bit"
+#elif defined(MELON_32BIT)
+            "-32bit"
+#endif
+            << std::endl
+        ;
+
         return 0;
     }
 
