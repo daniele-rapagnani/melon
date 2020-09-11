@@ -145,6 +145,7 @@ add_library(
     src/melon/modules/function/function_module.c
     src/melon/modules/gc/gc_module.c
     src/melon/modules/random/random_module.c
+    src/melon/modules/system/system_module.c
 
     ${PLATFORM_SRCS}
 )
