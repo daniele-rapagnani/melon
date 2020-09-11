@@ -3,6 +3,6 @@
 
 #include "melon/core/types.h"
 
-void melGetRandomSeed(TUint64* seed);
+void melGetRandomSeed(TSize* seed);
 
 #endif // __melon__seed_os_api_h__

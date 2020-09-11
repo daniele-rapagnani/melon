@@ -1165,7 +1165,7 @@ private:
     Serializer codeSerializer;
 
     std::vector<TByte> buffer;
-    TUint64 curBuffer = 0; 
+    TSize curBuffer = 0; 
 
     std::ofstream outFileStr;
 

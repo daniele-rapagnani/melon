@@ -10,9 +10,9 @@
 #include <assert.h>
 
 static const TUint16 MAX_SEED_ATTEMPTS = 1000;
-static TUint64 globalSeed = 0;
+static TSize globalSeed = 0;
 
-static void setSeed(TUint64 seed)
+static void setSeed(TSize seed)
 {
     globalSeed = seed;
     spmx64_seed = seed;
@@ -32,7 +32,7 @@ static void ensureSeed(VM* vm)
     }
 
     TUint16 attempts = 0;
-    TUint64 newSeed = 0;
+    TSize newSeed = 0;
 
     while (newSeed == 0)
     {

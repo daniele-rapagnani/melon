@@ -20,7 +20,7 @@ GCItem* melNewNativeIterator(VM* vm, const Value* value, NativeIteratorNext next
     melWriteBarrierValueGC(vm, obj, &nitObj->value);
 
 #ifdef _TRACK_ALLOCATIONS_GC
-    printf("Allocated native iterator of size %llu (%p), total bytes allocated = %llu\n", size + sizeof(GCItem), obj, vm->gc.usedBytes);
+    printf("Allocated native iterator of size " MELON_PRINTF_SIZE " (%p), total bytes allocated = " MELON_PRINTF_SIZE "\n", size + sizeof(GCItem), obj, vm->gc.usedBytes);
 #endif
 
     return obj;
@@ -31,7 +31,7 @@ TRet melFreeNativeIterator(VM* vm, GCItem* nit)
     NativeIterator* nitObj = melM_nativeitFromObj(nit);
 
 #ifdef _TRACK_ALLOCATIONS_GC
-    printf("Freeing symbol of %llu bytes (%p), total bytes now = %llu\n", nitObj->size + sizeof(GCItem), nit, vm->gc.usedBytes - (nitObj->size + sizeof(GCItem)));
+    printf("Freeing symbol of " MELON_PRINTF_SIZE " bytes (%p), total bytes now = " MELON_PRINTF_SIZE "\n", nitObj->size + sizeof(GCItem), nit, vm->gc.usedBytes - (nitObj->size + sizeof(GCItem)));
 #endif
 
     vm->gc.usedBytes -= nitObj->size;

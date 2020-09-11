@@ -1,0 +1,17 @@
+Stack top: 4
+
+Stack:
+---
+0) 300 : TInteger
+1) 200 : TInteger
+2) 400 : TInteger
+3) Array(size = 3) : TArray
+---
+Stack top: 3
+
+Stack:
+---
+0) 3 : TInteger
+1) 600 : TInteger
+2) null : TNull
+---
