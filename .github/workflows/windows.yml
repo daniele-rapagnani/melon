@@ -24,11 +24,6 @@ jobs:
           COMPILER_PATH: "C:\\msys64\\mingw64\\bin"
 
     steps:
-    
-    - name: Print PATH
-      run: echo %PATH%
-      shell: cmd
-    
     - uses: actions/checkout@v2
       with:
         submodules: "recursive"
@@ -51,6 +46,12 @@ jobs:
         echo "::set-env name=BUILD_BITS::64"
       shell: bash
       if: matrix.bits == 64
+    
+    - name: Setup compiler
+      run: |
+        echo "::set-env name=CC::${{ matrix.ARCH }}-w64-mingw32-gcc.exe"
+        echo "::set-env name=CXX::${{ matrix.ARCH }}-w64-mingw32-g++.exe"
+      shell: bash
         
     - name: Run CMake
       run: |
