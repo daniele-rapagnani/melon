@@ -56,7 +56,7 @@ jobs:
     - name: Run CMake
       run: |
         set PATH=%PATH%;${{ matrix.COMPILER_PATH }}
-        cd "${{ github.workspace }"
+        cd "${{ github.workspace }}"
         mkdir build
         cd build
         cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON -DBUILD_32="${{ env.BUILD_32 }}" ../
