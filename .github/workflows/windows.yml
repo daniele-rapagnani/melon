@@ -12,6 +12,7 @@ jobs:
     runs-on: windows-latest
     
     strategy:
+      fail-fast: false
       matrix:
         bits: [32, 64]
         include:
@@ -67,6 +68,12 @@ jobs:
         set PATH=%PATH%;${{ matrix.COMPILER_PATH }}
         cd "${{ github.workspace }}\\build"
         mingw32-make
+      shell: cmd
+      
+    - name: Print version
+      run: |
+        cd "${{ github.workspace }}\\build"
+        melon.exe -v
       shell: cmd
     
     - name: Run Tests
