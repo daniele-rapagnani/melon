@@ -54,7 +54,7 @@ jobs:
         cd "${{ github.workspace }}"
         mkdir build
         cd build
-        cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON -DBUILD_32="${{ env.BUILD_32 }}" -G "MinGW Makefiles" ../
+        cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON -DBUILD_32="${{ env.BUILD_32 }}" -DCMAKE_SH="CMAKE_SH-NOTFOUND" -G "MinGW Makefiles" ../
       shell: cmd
     
     - name: Run Make
