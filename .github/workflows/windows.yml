@@ -25,6 +25,10 @@ jobs:
 
     steps:
     
+    - name: Print PATH
+      run: echo %PATH%
+      shell: cmd
+    
     - uses: actions/checkout@v2
       with:
         submodules: "recursive"
