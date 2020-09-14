@@ -1,0 +1,73 @@
+name: Windows
+
+on:
+  push:
+    branches: [ develop, master ]
+  pull_request:
+    branches: [ develop, master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        bits: [32, 64]
+        include:
+        - bits: 32
+          ARCH: "i686"
+          COMPILER_PATH: "C:\\msys64\\mingw32\\bin"
+          
+        - bits: 64
+          ARCH: "x86_64"
+          COMPILER_PATH: "C:\\msys64\\mingw64\\bin"
+
+    steps:
+    
+    - uses: actions/checkout@v2
+      with:
+        submodules: "recursive"
+    
+    - name: Install CMake
+      uses: Symbitic/install-cmake@v0.1.0
+      with:
+        cmake: "3.14.4"
+        
+    - name: Setup BUILD_32 ON
+      run: |
+        echo "::set-env name=BUILD_32::ON"
+        echo "::set-env name=BUILD_BITS::32"
+      shell: bash
+      if: matrix.bits == 32
+    
+    - name: Setup BUILD_32 OFF
+      run: |
+        echo "::set-env name=BUILD_32::OFF"
+        echo "::set-env name=BUILD_BITS::64"
+      shell: bash
+      if: matrix.bits == 64
+    
+    - name: Setup Environment
+      run: | 
+        sudo apt-get update -qq
+        sudo apt-get install gcc-multilib g++-multilib
+        
+    - name: Run CMake
+      run: |
+        set PATH=%PATH%;${{ matrix.COMPILER_PATH }}
+        cd "${{ github.workspace }"
+        mkdir build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON -DBUILD_32="${{ env.BUILD_32 }}" ../
+    
+    - name: Run Make
+      run: |
+        set PATH=%PATH%;${{ matrix.COMPILER_PATH }}
+        cd "${{ github.workspace }}\\build"
+        mingw32-make
+    
+    - name: Run Tests
+      run: |
+        cd "${{ github.workspace }}\\tests"
+        ..\\build\\tests.exe
