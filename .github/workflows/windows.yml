@@ -47,11 +47,6 @@ jobs:
         echo "::set-env name=BUILD_BITS::64"
       shell: bash
       if: matrix.bits == 64
-    
-    - name: Setup Environment
-      run: | 
-        sudo apt-get update -qq
-        sudo apt-get install gcc-multilib g++-multilib
         
     - name: Run CMake
       run: |
