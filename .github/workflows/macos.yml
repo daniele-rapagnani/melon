@@ -1,4 +1,4 @@
-name: Melon CI
+name: Mac OS
 
 on:
   push:
