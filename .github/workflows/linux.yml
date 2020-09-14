@@ -13,7 +13,7 @@ jobs:
     
     strategy:
       matrix:
-        build_32: [OFF, ON]
+        bits: [32, 64]
 
     steps:
     
@@ -25,14 +25,26 @@ jobs:
       uses: Symbitic/install-cmake@v0.1.0
       with:
         cmake: "3.14.4"
+        
+    - name: Setup BUILD_32 ON
+      run: |
+        echo "::set-env name=BUILD_32::ON"
+      shell: bash
+      if: matrix.bits == 32
+    
+    - name: Setup BUILD_32 OFF
+      run: |
+        echo "::set-env name=BUILD_32::OFF"
+      shell: bash
+      if: matrix.bits == 64
     
     - name: Setup Environment
       run: | 
         sudo apt-get update -qq
-        sudo apt-get install gcc-multilib
+        sudo apt-get install gcc-multilib g++-multilib
         
     - name: Run CMake
-      run: mkdir -p "${{ github.workspace }}/build" && cd "${{ github.workspace }}/build" && cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON -DBUILD_32=${{ matrix.build_32 }} ../
+      run: mkdir -p "${{ github.workspace }}/build" && cd "${{ github.workspace }}/build" && cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON -DBUILD_32="$BUILD_32" ../
     
     - name: Run Make
       run: cd "${{ github.workspace }}/build" && make
