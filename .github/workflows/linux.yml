@@ -29,12 +29,14 @@ jobs:
     - name: Setup BUILD_32 ON
       run: |
         echo "::set-env name=BUILD_32::ON"
+        echo "::set-env name=BUILD_BITS::32"
       shell: bash
       if: matrix.bits == 32
     
     - name: Setup BUILD_32 OFF
       run: |
         echo "::set-env name=BUILD_32::OFF"
+        echo "::set-env name=BUILD_BITS::64"
       shell: bash
       if: matrix.bits == 64
     
@@ -48,6 +50,11 @@ jobs:
     
     - name: Run Make
       run: cd "${{ github.workspace }}/build" && make
+    
+    - name: Check Build Version
+      run: |
+        "${{ github.workspace }}/build/melon" -v | grep -q "${BUILD_BITS}bit"
+      shell: bash
     
     - name: Run Tests
       run: cd "${{ github.workspace }}/tests" && ../build/tests
