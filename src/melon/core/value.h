@@ -58,11 +58,13 @@ typedef struct Value
     } pack;
 } Value;
 
+typedef TSize TValueHash;
+
 melM_valFromTypeDec(intVal, TInteger);
 melM_valFromTypeDec(numVal, TNumber);
 
 TRet melCmpValues(VM* vm, Value* a, Value* b, TRet* res);
-TRet melGetHashValue(VM* vm, Value* v, TUint64* hash);
+TRet melGetHashValue(VM* vm, Value* v, TValueHash* hash);
 TRet melToNumberValue(VM* vm, Value* v, Value* out);
 TRet melVisitValue(VM* vm, Value* val, GCItemVisitor visit, void* ctx, TSize depth);
 

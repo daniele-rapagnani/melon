@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-void melGetRandomSeed(TUint64* seed)
+void melGetRandomSeed(TSize* seed)
 {
-    arc4random_buf((void*)seed, sizeof(TUint64));
+    arc4random_buf((void*)seed, sizeof(TSize));
 }

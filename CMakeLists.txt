@@ -7,6 +7,7 @@ option(GSTATS_GC "Print global stats for the garbage collector when main functio
 option(STATS_GC "Print stats for the garbage collector for every collection cycle" OFF)
 option(DEBUG_COMPILER "Outputs compiled instructions as the compiler runs" OFF)
 option(PROFILING_BUILD "Creates a build suitable for profiling" OFF)
+option(BUILD_32 "Sets the build target to 32 bits" OFF)
 
 if(DEBUG_GC)
     add_definitions(-D_TRACK_ALLOCATIONS_GC)
@@ -34,6 +35,11 @@ if (APPLE)
     set(CMAKE_MACOSX_RPATH 0)
     set(ENABLE_CUSTOM_COMPILER_FLAGS Off)
 endif (APPLE)
+
+if ((UNIX OR MINGW) AND BUILD_32)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+endif()
     
 option(CJSON_OVERRIDE_BUILD_SHARED_LIBS "" On)
 option(CJSON_BUILD_SHARED_LIBS "" Off)
@@ -139,6 +145,7 @@ add_library(
     src/melon/modules/function/function_module.c
     src/melon/modules/gc/gc_module.c
     src/melon/modules/random/random_module.c
+    src/melon/modules/system/system_module.c
 
     ${PLATFORM_SRCS}
 )
@@ -166,7 +173,6 @@ include_directories(
     src/
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
 add_executable(

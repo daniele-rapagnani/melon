@@ -1,0 +1,7 @@
+Stack top: 2
+
+Stack:
+---
+0) 10 : TInteger
+1) "a random string value" : TString
+---

@@ -227,21 +227,21 @@ TRet melDumpGlobalStatsGC(GC* gc)
 
     printf(
         "=== GC stats ===\n"
-        "total collections = %llu\n"
+        "total collections = " MELON_PRINTF_SIZE "\n"
         "time collecting: %fs\n"
         "total time: %fs\n"
         "time percent collecting: %f%%\n"
-        "total scanned: %llu\n"
-        "total freed: %llu\n"
+        "total scanned: " MELON_PRINTF_SIZE "\n"
+        "total freed: " MELON_PRINTF_SIZE "\n"
         "efficency = %f%%\n"
-        "total minor collections: %llu\n"
-        "total major collections: %llu\n"
-        "total mark iterations: %llu\n"
-        "total sweep iterations: %llu\n"
+        "total minor collections: " MELON_PRINTF_SIZE "\n"
+        "total major collections: " MELON_PRINTF_SIZE "\n"
+        "total mark iterations: " MELON_PRINTF_SIZE "\n"
+        "total sweep iterations: " MELON_PRINTF_SIZE "\n"
         "avg mark iterations per collection: %f\n"
         "avg sweep iterations per collection: %f\n"
         "max pause = %fms\nmin pause = %fms\navg pause time: %fms\navg time per free = %fms\n"
-        "total reclaimed: %llu bytes\n===\n", 
+        "total reclaimed: " MELON_PRINTF_SIZE " bytes\n===\n", 
         collections,
         gstats->totalTimeInGC / 1000000000.0f,
         gstats->totalTimeRuntime / 1000000000.0f,
@@ -487,7 +487,7 @@ static void melDoMinorCollection(VM* vm, GC* gc)
 
     if (gc->whitesCount >= gc->nextMajorTriggerSize)
     {
-        melM_gcLog("Processing %lld items still left in the nursery\n", gc->nurserySize);
+        melM_gcLog("Processing " MELON_PRINTF_INT " items still left in the nursery\n", gc->nurserySize);
 
         // Some objects may be still in the nursery.
         // We need to promote them so that they can be
@@ -533,7 +533,7 @@ static void melDoMarkIteration(VM* vm, GC* gc)
 
     melMarkRoots(vm, gc);
 
-    melM_gcLog("Marking step: grey = %lld, white = %lld\n", gc->greyStackSize, gc->whitesCount);
+    melM_gcLog("Marking step: grey = " MELON_PRINTF_INT ", white = " MELON_PRINTF_INT "\n", gc->greyStackSize, gc->whitesCount);
 
     melProcessGreyStack(
         vm, 
@@ -549,7 +549,7 @@ static void melDoMarkIteration(VM* vm, GC* gc)
     {
         gc->phase = MELON_GC_SWEEP_PHASE;
 
-        melM_gcLog("Marking completed: white objects = %llu\n", gc->whitesCount);
+        melM_gcLog("Marking completed: white objects = " MELON_PRINTF_SIZE "\n", gc->whitesCount);
 
         if (gc->whitesCount == 0)
         {
@@ -576,7 +576,7 @@ static void melDoSweepIteration(VM* vm, GC* gc)
     GCItem* curItem = gc->whitesList;
     GCItem* prevItem = NULL;
 
-    melM_gcLog("Sweeping %llu white objects\n", gc->whitesCount);
+    melM_gcLog("Sweeping " MELON_PRINTF_SIZE " white objects\n", gc->whitesCount);
 
     while (curItem != NULL)
     {

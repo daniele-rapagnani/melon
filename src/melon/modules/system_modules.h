@@ -21,6 +21,7 @@
 #include "melon/modules/function/function_module.h"
 #include "melon/modules/gc/gc_module.h"
 #include "melon/modules/random/random_module.h"
+#include "melon/modules/system/system_module.h"
 
 #include <stdlib.h>
 
@@ -43,6 +44,7 @@ Module MEL_SYSTEM_MODULES[] = {
     { "function", melFunctionModuleInit },
     { "gc", melGcModuleInit },
     { "random", melRandomModuleInit },
+    { "system", melSystemModuleInit },
     { NULL, NULL }
 };
 

@@ -3,6 +3,8 @@
 
 #include "melon/core/macros.h"
 
+#include <stdint.h>
+
 /* General */
 #define MELON_VERSION_MAJOR 0
 #define MELON_VERSION_MINOR 1
@@ -11,6 +13,16 @@
     melM_stringify(MELON_VERSION_MAJOR) \
     "." melM_stringify(MELON_VERSION_MINOR) \
     "." melM_stringify(MELON_VERSION_PATCH)
+
+#if UINTPTR_MAX == UINT32_MAX
+#define MELON_32BIT
+#define MELON_ARCH_BITS "32"
+#elif UINTPTR_MAX == UINT64_MAX
+#define MELON_64BIT
+#define MELON_ARCH_BITS "64"
+#else
+#error "Missing UNITPTR_MAX on this platform, can't guess if we are building 32 or 64 bit."
+#endif
 
 /* Deserializer */
 #define MELON_BYTECODE_VERSION 1

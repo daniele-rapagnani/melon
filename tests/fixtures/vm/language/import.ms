@@ -22,8 +22,9 @@ io.print("Number of cached modules:");
 io.print(#import.cache);
 
 import.paths = [
-    "##/modules/??.mbc",
-    "##/??/index.ms"
+    "##/modules/" .. string.toString(system.getArchBits()) .. "/??.mbc",
+    "##/??/index.ms",
+    "##/../??/index.ms"
 ];
 
 import.cache = {};

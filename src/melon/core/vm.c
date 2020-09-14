@@ -191,7 +191,12 @@ const TByte MAGIC_BYTES[] = {
     0x4d, 0x45, 0x4c, 0x4f, 0x4e
 };
 
+#ifdef MELON_64BIT
 const TInteger INT_CHECK_VALUE = 0x99AABBCCDDEEFF;
+#else
+const TInteger INT_CHECK_VALUE = 0x99AABBCC;
+#endif
+
 const TNumber  NUM_CHECK_VALUE = -2045.123;
 
 const char* MELON_TYPES_NAMES[] = {
@@ -414,13 +419,13 @@ static void opConcat(VM* vm)
     melM_vstackPushPop(vm, &val, 2);
 }
 
-static void opJmp(VM* vm, Instruction* i, TUint64* pc)
+static void opJmp(VM* vm, Instruction* i, TSize* pc)
 {
     TVMInstSK offset = melM_op_geta25s(i->inst);
     *pc += offset;
 }
 
-static void opTestTrue(VM* vm, Instruction* i, TUint64* pc)
+static void opTestTrue(VM* vm, Instruction* i, TSize* pc)
 {
     TVMInstK popValue = melM_op_geta25(i->inst);
     Value* v = melPeekStackOfType(vm, MELON_TYPE_BOOL, 0);
@@ -429,7 +434,7 @@ static void opTestTrue(VM* vm, Instruction* i, TUint64* pc)
     vm->stack.top -= popValue;
 }
 
-static void opTestFalse(VM* vm, Instruction* i, TUint64* pc)
+static void opTestFalse(VM* vm, Instruction* i, TSize* pc)
 {
     TVMInstK popValue = melM_op_geta25(i->inst);
     Value* v = melPeekStackOfType(vm, MELON_TYPE_BOOL, 0);
@@ -2325,7 +2330,7 @@ static TRet melReturnFunction(VM* vm, TUint32 valuesCount)
         {
             StackEntry* retStart = &vm->stack.stack[vm->stack.top - valuesCount];
             StackEntry* newRetStart = &vm->stack.stack[cf->stackStart - 1];
-            memcpy(newRetStart, retStart, sizeof(StackEntry) * valuesCount);
+            memmove(newRetStart, retStart, sizeof(StackEntry) * valuesCount);
         }
     }
     else if (cf->expRet == 1)
@@ -2767,11 +2772,11 @@ void melErrorVM(VM* vm, const char *format, ...)
 {
     // This can be NULL if an error has been raised
     // before the VM even run (eg: deserialization)
-    CallFrame* cf = melGetTopCallFrameVM(vm);
+    CallFrame* cf = melM_stackIsEmpty(&vm->callStack) ? NULL : melGetTopCallFrameVM(vm);
 
     // If the function is native we do not have debug informations
     // so we are simply falling back to the function call itself
-    if (cf != NULL && cf->function->native)
+    if (cf != NULL && cf->function != NULL && cf->function->native)
     {
         // Maybe this native functionw as invoked directly by code
         if (vm->callStack.top > 1)
