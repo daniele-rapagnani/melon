@@ -69,6 +69,12 @@ jobs:
         cd "${{ github.workspace }}\\build"
         mingw32-make
       shell: cmd
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: melon-windows-${{ env.BUILD_BITS }}
+        path: "${{ github.workspace }}\\build\\*.exe"
       
     - name: Print version
       run: |
