@@ -34,6 +34,10 @@ jobs:
       run: |
         mkdir "${{ github.workspace }}\\dumps"
         procdump -mm -i "${{ github.workspace}}\\dumps"
+        
+    - name: Install VC++ Redis 32 Bit
+      run: |
+        choco install --x86 vcredist2012
       
     - uses: actions/checkout@v2
       with:
@@ -89,11 +93,10 @@ jobs:
     - name: Print version
       run: |
         cd "${{ github.workspace }}\\build"
-        procdump melon.exe -t melondump
         melon.exe -v
       shell: cmd
     
-    - name: "Uploading dumps"
+    - name: Uploading dumps
       uses: actions/upload-artifact@v2
       if: failure()
       with:
