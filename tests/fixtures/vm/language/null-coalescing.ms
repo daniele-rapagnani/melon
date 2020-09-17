@@ -8,4 +8,4 @@ let a = null;
 let b = "b";
 
 io.print(a ?? b);
-io.print(5 ?? null * 10);
+io.print((5 ?? null) * 10);
