@@ -79,6 +79,7 @@ jobs:
     - name: Print version
       run: |
         cd "${{ github.workspace }}\\build"
+        dir /s "C:\Program Files (x86)\Microsoft Visual Studio\"
         dumpbin /dependents melon.exe
         melon.exe -v
       shell: cmd
