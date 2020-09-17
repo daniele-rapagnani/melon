@@ -93,7 +93,15 @@ static void melCompileUnaryOp(Compiler* c);
 static void melCompileBinaryOp(Compiler* c, const Token* t);
 static void melCompileSuffixed(Compiler* c);
 
-#define MAX_PRECEDENCE 8
+#define MAX_PRECEDENCE 13
+
+/**
+ * Operators precedence is inspired by C++ and ES6.
+ *
+ * References:
+ * - https://en.cppreference.com/w/cpp/language/operator_precedence
+ * - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+ */
 
 static struct Operator operators[] = {
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_NONE = 0, */
@@ -107,22 +115,22 @@ static struct Operator operators[] = {
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_SEMICOLON, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_DOT, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_COMMA, */
-    { melCompileUnaryOp, melCompileBinaryOp, MAX_PRECEDENCE - 5, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_STAR, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_SLASH, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_PERCENT, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_PLUS, */
-    { melCompileUnaryOp, melCompileBinaryOp, MAX_PRECEDENCE - 4, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_MINUS, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_PIPE, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE, SCS_BOOLEAN_EXIT_TRUE }, /* MELON_TOKEN_PIPEPIPE, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_AMP, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 1, SCS_BOOLEAN_EXIT_FALSE }, /* MELON_TOKEN_AMPAMP, */
+    { melCompileUnaryOp, melCompileBinaryOp, 1, 2, SCS_NONE }, /* MELON_TOKEN_STAR, */
+    { NULL, melCompileBinaryOp, 0, 2, SCS_NONE }, /* MELON_TOKEN_SLASH, */
+    { NULL, melCompileBinaryOp, 0, 2, SCS_NONE }, /* MELON_TOKEN_PERCENT, */
+    { NULL, melCompileBinaryOp, 0, 3, SCS_NONE }, /* MELON_TOKEN_PLUS, */
+    { melCompileUnaryOp, melCompileBinaryOp, 1, 3, SCS_NONE }, /* MELON_TOKEN_MINUS, */
+    { NULL, melCompileBinaryOp, 0, 9, SCS_NONE }, /* MELON_TOKEN_PIPE, */
+    { NULL, melCompileBinaryOp, 0, 11, SCS_BOOLEAN_EXIT_TRUE }, /* MELON_TOKEN_PIPEPIPE, */
+    { NULL, melCompileBinaryOp, 0, 7, SCS_NONE }, /* MELON_TOKEN_AMP, */
+    { NULL, melCompileBinaryOp, 0, 10, SCS_BOOLEAN_EXIT_FALSE }, /* MELON_TOKEN_AMPAMP, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_QUESTION, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_EQ, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_LT, */
-    { melCompileUnaryOp, melCompileBinaryOp, MAX_PRECEDENCE - 6, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_GT, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_LTEQ, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_GTEQ, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_EQEQ, */
+    { NULL, melCompileBinaryOp, 0, 5, SCS_NONE }, /* MELON_TOKEN_LT, */
+    { melCompileUnaryOp, melCompileBinaryOp, 1, 5, SCS_NONE }, /* MELON_TOKEN_GT, */
+    { NULL, melCompileBinaryOp, 0, 5, SCS_NONE }, /* MELON_TOKEN_LTEQ, */
+    { NULL, melCompileBinaryOp, 0, 5, SCS_NONE }, /* MELON_TOKEN_GTEQ, */
+    { NULL, melCompileBinaryOp, 0, 6, SCS_NONE }, /* MELON_TOKEN_EQEQ, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_EQLT, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_FAT_ARROW, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_BREAK, */
@@ -140,21 +148,21 @@ static struct Operator operators[] = {
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_NUMBER, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_INTEGER, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_STRING, */
-    { melCompileUnaryOp, NULL, MAX_PRECEDENCE - 4, 0, SCS_NONE }, /* MELON_TOKEN_EXCLAMATION, */
-    { melCompileUnaryOp, NULL, MAX_PRECEDENCE - 5, 0, SCS_NONE }, /* MELON_TOKEN_HASH, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_DOTDOT, */
+    { melCompileUnaryOp, NULL, 1, 0, SCS_NONE }, /* MELON_TOKEN_EXCLAMATION, */
+    { melCompileUnaryOp, NULL, 1, 0, SCS_NONE }, /* MELON_TOKEN_HASH, */
+    { NULL, melCompileBinaryOp, 0, 6, SCS_NONE }, /* MELON_TOKEN_DOTDOT, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_FUNC, */
-    { melCompileUnaryOp, melCompileBinaryOp, MAX_PRECEDENCE - 5, MAX_PRECEDENCE - 5, SCS_NONE }, /* MELON_TOKEN_AT, */
+    { melCompileUnaryOp, melCompileBinaryOp, 1, 5, SCS_NONE }, /* MELON_TOKEN_AT, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_RIGHT_ARROW, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_DOLLAR, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_NOTEQ, */
+    { NULL, melCompileBinaryOp, 0, 2, SCS_NONE }, /* MELON_TOKEN_NOTEQ, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_IN */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_GTGT */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_LTLT */
-    { melCompileUnaryOp, melCompileBinaryOp, MAX_PRECEDENCE - 4, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_CARET */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_CARETCARET */
+    { NULL, melCompileBinaryOp, 0, 4, SCS_NONE }, /* MELON_TOKEN_GTGT */
+    { NULL, melCompileBinaryOp, 0, 4, SCS_NONE }, /* MELON_TOKEN_LTLT */
+    { melCompileUnaryOp, melCompileBinaryOp, 1, 8, SCS_NONE }, /* MELON_TOKEN_CARET */
+    { NULL, melCompileBinaryOp, 0, 3, SCS_NONE }, /* MELON_TOKEN_CARETCARET */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_CONTINUE */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 4, SCS_NONE }, /* MELON_TOKEN_QUESTIONQUESTION */
+    { NULL, melCompileBinaryOp, 0, 12, SCS_NONE }, /* MELON_TOKEN_QUESTIONQUESTION */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_ELLIPSIS */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_EOF */
 };
