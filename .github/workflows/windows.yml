@@ -25,6 +25,12 @@ jobs:
           COMPILER_PATH: "C:\\msys64\\mingw64\\bin"
 
     steps:
+    - name: Download Procdump
+      run: |
+        choco install procdump
+        procdump
+      shell: "cmd"
+      
     - uses: actions/checkout@v2
       with:
         submodules: "recursive"
@@ -79,8 +85,7 @@ jobs:
     - name: Print version
       run: |
         cd "${{ github.workspace }}\\build"
-        dir dumpbin* /S /B
-        dumpbin /dependents melon.exe
+        procdump melon.exe -t melondump
         melon.exe -v
       shell: cmd
     
