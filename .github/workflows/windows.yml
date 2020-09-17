@@ -28,8 +28,12 @@ jobs:
     - name: Download Procdump
       run: |
         choco install procdump
-        procdump
       shell: "cmd"
+      
+    - name: Install Procdump
+      run: |
+        mkdir "${{ github.workspace }}\\dumps"
+        procdump -mm -i "${{ github.workspace}}\\dumps"
       
     - uses: actions/checkout@v2
       with:
@@ -88,6 +92,13 @@ jobs:
         procdump melon.exe -t melondump
         melon.exe -v
       shell: cmd
+    
+    - name: "Uploading dumps"
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: dumps
+        path: "${{ github.workspace }}\\dumps"
     
     - name: Run Tests
       run: |
