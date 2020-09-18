@@ -1542,8 +1542,6 @@ static TRet melCompileLocal(Compiler* c)
 
 static TRet melCompileReturn(Compiler* c)
 {
-    c->curFunc->returned = 1;
-
     TVMInstK retNum = 0;
 
     if (melAdvanceIfTypeLexer(&c->lexer, MELON_TOKEN_SEMICOLON) != 0)
@@ -1861,10 +1859,17 @@ static TRet melCompileFunction(Compiler* c, FunctionDef* funcDef)
         }
     }
 
-    if (!c->curFunc->returned)
-    {
-        melM_writeOp1_25(c, MELON_OP_RET, 0);
-    }
+    /*
+        Deciding if the function's body returned something or not is
+        a hard problem. We can't simply look at the last generated instruction
+        because we have no way to tell if it is part of a branch. This is also true
+        for return statements without adding complexity.
+        To make sure that a function always returns we are thus always appending
+        an extra return instruction. In the worst case scenarios this means 4 bytes more
+        for every function in the bytecode.
+    */
+
+    melM_writeOp1_25(c, MELON_OP_RET, 0);
 
     /* @TODO:
         I dont like the fact that we are denormalizing function-related data. 

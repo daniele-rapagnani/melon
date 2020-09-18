@@ -34,7 +34,6 @@ typedef struct FunctionDef {
     GCItem* func;
     struct FunctionDef* parent;
     FunctionStack* funcStack;
-    TBool returned;
     VariableInfo variables[MELON_COMP_MAX_LOCAL_VARIABLES];
     TUint16 blockVariables[MELON_COMP_MAX_LOCAL_VARIABLES];
     TUint16 blockVariablesTop;
