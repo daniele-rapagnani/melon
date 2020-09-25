@@ -62,6 +62,7 @@ testTrim("");
 testTrim("     ");
 testTrim("          ");
 testTrim("          asdasd                  ");
+testTrim("asdasd");
 
 io.print(string.format("Hello World"));
 io.print(string.format("Hello %s", "World"));

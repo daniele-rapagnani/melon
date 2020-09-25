@@ -394,7 +394,7 @@ static TByte trim(VM* vm)
         frontSpacesCount++;
     }
 
-    for (TSize i = strObj->len; i > frontSpacesCount; i--)
+    for (TSize i = strObj->len; i > frontSpacesCount + 1; i--)
     {
         if (!isspace(strData[i - 1]))
         {
@@ -406,7 +406,8 @@ static TByte trim(VM* vm)
 
     assert((frontSpacesCount + backSpacesCount) <= strObj->len);
 
-    TSize totalLen = strObj->len - frontSpacesCount - backSpacesCount;
+    // +1 for the null-termination
+    TSize totalLen = strObj->len - frontSpacesCount - backSpacesCount + 1;
     GCItem* newStr = melNewDataString(vm, totalLen);
 
     melM_vstackPushGCItem(&vm->stack, newStr);
