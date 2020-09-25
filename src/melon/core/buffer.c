@@ -25,7 +25,7 @@ TRet melWriteBuffer(Buffer* b, const TByte* data, TSize len)
     memcpy(b->buffer + b->size, data, len);
     b->size += len;
 
-    return 1;
+    return 0;
 }
 
 TRet melFreeBuffer(Buffer* b)
