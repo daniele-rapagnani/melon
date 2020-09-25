@@ -143,7 +143,28 @@ static cJSON* serializeJson(VM* vm, Value* node)
     return NULL;
 }
 
-TByte parseFunc(VM* vm)
+static TRet parseString(VM* vm, const Value* str)
+{
+    String* contentStr = melM_strFromObj(str->pack.obj);
+    const char* contentData = melM_strDataFromObj(str->pack.obj);
+
+    const char* errPtr = NULL;
+    cJSON* json = cJSON_ParseWithLengthOpts(contentData, contentStr->len + 1, &errPtr, 1);
+
+    if (json == NULL)
+    {
+        melM_stackPop(&vm->stack);
+        melM_vstackPushNull(&vm->stack);
+        return 1;
+    }
+
+    deserializeJson(vm, json);
+    cJSON_Delete(json);
+
+    return 1;
+}
+
+TByte parseFileFunc(VM* vm)
 {
     melM_arg(vm, jsonFile, MELON_TYPE_STRING, 0);
 
@@ -185,24 +206,13 @@ TByte parseFunc(VM* vm)
         return 1;
     }
 
-    String* contentStr = melM_strFromObj(contentResult.pack.obj);
-    const char* contentData = melM_strDataFromObj(contentResult.pack.obj);
+    return parseString(vm, &contentResult);
+}
 
-    const char* errPtr = NULL;
-    cJSON* json = cJSON_ParseWithLengthOpts(contentData, contentStr->len + 1, &errPtr, 1);
-
-    if (json == NULL)
-    {
-        melM_stackPop(&vm->stack);
-        melM_vstackPushNull(&vm->stack);
-        return 1;
-    }
-
-    deserializeJson(vm, json);
-
-    cJSON_Delete(json);
-
-    return 1;
+TByte parseFunc(VM* vm)
+{
+    melM_arg(vm, jsonString, MELON_TYPE_STRING, 0);
+    return parseString(vm, jsonString);
 }
 
 TByte stringifyFunc(VM* vm)
@@ -235,6 +245,7 @@ TByte stringifyFunc(VM* vm)
 static const ModuleFunction funcs[] = {
     // name, args, locals, func
     { "parse", 1, 0, parseFunc },
+    { "parseFile", 1, 0, parseFileFunc },
     { "stringify", 2, 0, stringifyFunc },
     { NULL, 0, 0, NULL }
 };
