@@ -90,6 +90,16 @@ TRet melCreateLexerFile(Lexer* l, const char* file, const char* source, TSize le
     l->column = 0;
     l->file = NULL;
 
+    if (melCreateBuffer(&l->curToken.buffer, 0) != 0)
+    {
+        return 1;
+    }
+
+    if (melCreateBuffer(&l->futureToken.buffer, 0) != 0)
+    {
+        return 1;
+    }
+
     if (file != NULL)
     {
         l->file = (char*)malloc(sizeof(char) * (strlen(file) + 1));
@@ -169,6 +179,18 @@ static TRet melAdvanceMatchChar(Lexer* l, char c)
     }
 
     return 1;
+}
+
+static TRet melExpectChar(Lexer* l, char c, const char* error)
+{
+    if (melGetChar(l) != c)
+    {
+        melM_error(l, error);
+        return 1;
+    }
+
+    melAdvanceChar(l);
+    return 0;
 }
 
 static void setToken(Token* t, MelTokenType type)
@@ -457,6 +479,85 @@ static TRet melParseNumber(Lexer* l, TUint32* s)
     return 0;
 }
 
+static void melClearBuffer(Lexer* l)
+{
+    l->futureToken.buffer.size = 0;
+}
+
+static void melAppendBuffer(Lexer* l, char c)
+{
+    if (melWriteBuffer(&l->futureToken.buffer, (const TByte*)&c, 1) != 0)
+    {
+        melM_error(l, "Can't write to token string buffer");
+    }
+}
+
+static void melAppendBufferCur(Lexer* l)
+{
+    melAppendBuffer(l, melGetChar(l));
+}
+
+static void melConvertUnicodeCodepoint(Lexer* l)
+{
+    melExpectChar(l, 'u', "Invalid unicode code point escape: missing leading 'u'");
+    melExpectChar(l, '{', "Invalid unicode code point escape: Missing opening brace.");
+
+    char* start = (char*)l->curChar;
+    TSize len = 0;
+
+    while(melGetChar(l) != '}' && melGetChar(l) != '\0')
+    {
+        len++;
+        melAdvanceChar(l);
+    }
+
+    melExpectChar(l, '}', "Invalid unicode code point escape: Missing closing brace.");
+    
+    // Leave the last char to be consumed by the string lexing loop
+    l->curChar--;
+    char* endChar = (char*)l->curChar;
+    *endChar = '\0';
+
+    TUint32 codepoint = strtol(start, NULL, 16);
+    TByte* codepointBytes = (TByte*)&codepoint;
+
+    for (TByte i = 0; i < sizeof(TUint32); i++)
+    {
+        if (codepointBytes[i] == 0)
+        {
+            continue;
+        }
+        
+        melWriteBuffer(&l->futureToken.buffer, &codepointBytes[i], sizeof(TByte));
+    }
+
+    *endChar = '}';
+}
+
+static void melConvertEscaped(Lexer* l)
+{
+    melAdvanceChar(l);
+
+    switch(melGetChar(l))
+    {
+        case 'a': melAppendBuffer(l, '\a'); break;
+        case 'b': melAppendBuffer(l, '\b'); break;
+        case 'f': melAppendBuffer(l, '\f'); break;
+        case 'n': melAppendBuffer(l, '\n'); break;
+        case 'r': melAppendBuffer(l, '\r'); break;
+        case 't': melAppendBuffer(l, '\t'); break;
+        case 'v': melAppendBuffer(l, '\v'); break;
+        
+        case 'u': 
+            melConvertUnicodeCodepoint(l);
+            break;
+            
+        default:
+            melAppendBufferCur(l);
+            break;
+    }
+}
+
 TRet melAdvanceLexer(Lexer* l)
 {
     l->curToken = l->futureToken;
@@ -515,32 +616,43 @@ TRet melAdvanceLexer(Lexer* l)
         case '"':
         {
             TUint32 s = 0;
+            char c;
+            TBool parsingString = 1;
 
             // Comsumes the opening quote
             melAdvanceChar(l);
+            melClearBuffer(l);
 
             while(melGetChar(l) != '"')
             {
+                switch(melGetChar(l))
+                {
+                    case '\\':
+                        melConvertEscaped(l);
+                        break;
+                    
+                    default:
+                        melAppendBufferCur(l);
+                        break;
+                }
+ 
                 if (melAdvanceChar(l) != 0)
                 {
-                    melM_error(l, "Unexpected end of file");
+                    melM_error(l, "Unclosed string literal");
                     return 1;
                 }
 
                 s++;
             }
 
-            if (melGetChar(l) != '"')
-            {
-                melM_error(l, "Unclosed string literal");
-                return 1;
-            }
+            melAppendBuffer(l, '\0');
 
             melMakeToken(l, MELON_TOKEN_STRING, s);
             l->futureToken.start++; // Removes the starting quote;
 
-            // Consume the ending quote
+            // Skips the ending quote
             melAdvanceChar(l);
+
             break;
         }
 

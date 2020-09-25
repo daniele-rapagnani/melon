@@ -2,6 +2,7 @@
 #define __melon__lexer_h__
 
 #include "melon/core/types.h"
+#include "melon/core/buffer.h"
 
 typedef enum {
     MELON_TOKEN_NONE = 0,
@@ -71,6 +72,7 @@ typedef struct Token
 {
     MelTokenType type;
     const char* start;
+    Buffer buffer;
     TUint32 len;
     TSize line;
     TSize column;

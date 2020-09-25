@@ -497,6 +497,18 @@ static void pushStringConstant(Compiler* c, const char* str, TSize len)
     pushConstant(c, &val);
 }
 
+static void pushStringConstantToken(Compiler* c, const Token* t)
+{
+    if (t->type == MELON_TOKEN_STRING)
+    {
+        pushStringConstant(c, (const char*)t->buffer.buffer, t->buffer.size - 1);
+    }
+    else
+    {
+        pushStringConstant(c, t->start, t->len);
+    }
+}
+
 static void pushNumberConstant(Compiler* c, TNumber value)
 {
     Value val;
@@ -548,7 +560,7 @@ static TRet melCompileObjectDefinition(Compiler* c)
         else
         {
             const Token* t = melCurTokenLexer(&c->lexer);
-            pushStringConstant(c, t->start, t->len);
+            pushStringConstantToken(c, t);
             melAdvanceLexer(&c->lexer);    
         }
 
@@ -611,7 +623,7 @@ static TRet melCompileSymbolLiteral(Compiler* c)
         withLabel = 1;
 
         const Token* t = melCurTokenLexer(&c->lexer);
-        pushStringConstant(c, t->start, t->len);
+        pushStringConstantToken(c, t);
 
         melAdvanceLexer(&c->lexer);
     }
@@ -683,7 +695,7 @@ static TRet melCompileLiteral(Compiler* c)
             break;
 
         case MELON_TOKEN_STRING:
-            pushStringConstant(c, t->start, t->len);
+            pushStringConstantToken(c, t);
             melAdvanceLexer(&c->lexer);
             break;
 
@@ -1155,7 +1167,7 @@ static void melCompilePropertyAccess(Compiler* c, LHSNode* node, TBool methodAcc
     {
         case MELON_TOKEN_NAME:
             node->type = methodAccess ? LHS_METHOD_ACCESS : LHS_OBJ;
-            pushStringConstant(c, t->start, t->len);
+            pushStringConstantToken(c, t);
             break;
 
         default:
@@ -1184,7 +1196,7 @@ static TRet melCompileLHS(Compiler* c, LHSNode* node)
 
         if (node->type == LHS_GLOBAL)
         {
-            pushStringConstant(c, t->start, t->len);
+            pushStringConstantToken(c, t);
         }
 
         melAdvanceLexer(&c->lexer);
