@@ -41,3 +41,33 @@ Hex: A
 Padded number: 000000000000010
 Float precision: 1.12
 Padded float: 000000000003.14
+d
+a
+asd
+sd
+a.b.c
+["a","b","c"]
+abcd.abcde.abcdefgh.abcdefghijk
+["abcd","abcde","abcdefgh","abcdefghijk"]
+.
+[]
+
+[]
+...
+[]
+...abc..
+["abc"]
+...abc..
+["abc"]
+abc
+["abc"]
+.abc.
+["abc"]
+a@.@b@.@c@.@d
+["a","@b","@c","@d"]
+a@@@b@@@c@@@d
+["a","@b","@c","@d"]
+a@@b@@c@@d
+["a","b","c","d"]
+ajklhbjklhcjklhd
+["a","b","c","d"]

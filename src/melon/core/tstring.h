@@ -19,6 +19,7 @@ typedef struct String
 GCItem* melNewString(VM* vm, const char* str, TSize size);
 GCItem* melNewDataString(VM* vm, TSize size);
 TRet melUpdateStringHash(VM* vm, GCItem* s);
+GCItem* melNewStringFromString(VM* vm, GCItem* s1, TInteger* start, TInteger* end);
 GCItem* melNewStringFromStrings(VM* vm, GCItem* s1, GCItem* s2);
 TRet melFreeString(VM* vm, GCItem* s);
 TRet melCmpStrings(VM* vm, GCItem* s1, GCItem* s2);
