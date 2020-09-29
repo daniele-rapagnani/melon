@@ -2,6 +2,7 @@
 #define __melon__config_h__
 
 #include "melon/core/macros.h"
+#include "build_config.h"
 
 #include <stdint.h>
 
@@ -74,4 +75,3 @@
 /* #define MELON_STRINGS_TABLE_OPENADDRESSING */
 
 #endif // __melon__config_h__
-
