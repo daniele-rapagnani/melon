@@ -10,25 +10,25 @@ option(PROFILING_BUILD "Creates a build suitable for profiling" OFF)
 option(BUILD_32 "Sets the build target to 32 bits" OFF)
 
 if(DEBUG_GC)
-    add_definitions(-D_TRACK_ALLOCATIONS_GC)
-    add_definitions(-D_DEBUG_GC)
+    set(_DEBUG_GC ON)
+    set(_TRACK_ALLOCATIONS_GC ON)
 endif(DEBUG_GC)
 
 if(DEBUG_GC OR GSTATS_GC)
-    add_definitions(-D_PRINT_GSTATS_GC)
+    set(_PRINT_GSTATS_GC ON)
 endif(DEBUG_GC OR GSTATS_GC)
 
 if(DEBUG_GC OR STATS_GC)
-    add_definitions(-D_PRINT_STATS_GC)
+    set(_PRINT_STATS_GC ON)
 endif(DEBUG_GC OR STATS_GC)
 
 if(STRESS_GC)
-    add_definitions(-D_STRESS_GC)
-    add_definitions(-D_ZERO_MEMORY_ON_FREE_GC)
+    set(_STRESS_GC ON)
+    set(_ZERO_MEMORY_ON_FREE_GC ON)
 endif(STRESS_GC)
 
 if(DEBUG_COMPILER)
-    add_definitions(-D_DEBUG_COMPILER)
+    set(_DEBUG_COMPILER ON)
 endif(DEBUG_COMPILER)
 
 if (APPLE)
@@ -97,6 +97,8 @@ if (HAVE_ARC4RAND OR HAVE_BSD_ARC4RAND)
 else()
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/random/platform/seed_os_api_time.c)
 endif(HAVE_ARC4RAND OR HAVE_BSD_ARC4RAND)
+
+configure_file(src/melon/core/build_config.h.in build_config.h)
 
 add_library(
     melonscript-vm STATIC 
@@ -169,8 +171,10 @@ add_library(
     src/melon/libs/splitmix64/splitmix64.c
 )
 
-include_directories(
+target_include_directories(
+    melonscript-vm PUBLIC     
     src/
+    ${PROJECT_BINARY_DIR}
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
