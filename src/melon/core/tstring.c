@@ -86,6 +86,38 @@ GCItem* melNewString(VM* vm, const char* str, TSize size)
     return obj;
 }
 
+GCItem* melNewStringFromString(VM* vm, GCItem* s1, TInteger* start, TInteger* end)
+{
+    String* strObj = melM_strFromObj(s1);
+
+    if (strObj->len == 0)
+    {
+        return melNewString(vm, "", 0);
+    }
+
+    TInteger startIdx = start != NULL ? *start : 0;
+    TInteger endIdx = end != NULL ? *end : strObj->len - 1;
+
+    if (startIdx < 0)
+    {
+        startIdx = strObj->len + startIdx;
+    }
+
+    if (endIdx < 0)
+    {
+        endIdx = strObj->len + endIdx;
+    }
+
+    if (startIdx >= strObj->len || endIdx >= strObj->len || endIdx < startIdx)
+    {
+        return melNewString(vm, "", 0);
+    }
+
+    TSize len = (endIdx + 1) - startIdx;
+
+    return melNewString(vm, &(melM_strDataFromObj(s1)[startIdx]), len);
+}
+
 GCItem* melNewStringFromStrings(VM* vm, GCItem* s1, GCItem* s2)
 {
     if (s1->type != MELON_TYPE_STRING || s2->type != MELON_TYPE_STRING)

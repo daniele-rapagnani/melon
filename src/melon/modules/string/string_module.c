@@ -439,6 +439,69 @@ static TByte format(VM* vm)
     return 1;
 }
 
+static void addSplitItem(VM* vm, GCItem* arr, const char* start, TSize len)
+{
+    if (len == 0)
+    {
+        return;
+    }
+
+    GCItem* item = melNewString(vm, start, len);
+    
+    Value itemV;
+    itemV.type = item->type;
+    itemV.pack.obj = item;
+
+    melPushArray(vm, arr, &itemV);
+}
+
+static TByte split(VM* vm)
+{
+    melM_arg(vm, str, MELON_TYPE_STRING, 0);
+    melM_arg(vm, token, MELON_TYPE_STRING, 1);
+
+    String* strObj = melM_strFromObj(str->pack.obj);
+    String* tokenObj = melM_strFromObj(token->pack.obj);
+
+    GCItem* result = melNewArray(vm);
+    melM_vstackPushGCItem(&vm->stack, result);
+
+    if (tokenObj->len >= strObj->len)
+    {
+        return 1;
+    }
+
+    TSize ti = 0;
+    TSize len = 0;
+    const char* s = strObj->string;
+
+    for (TSize i = 0; i < strObj->len; i++)
+    {
+        if (strObj->string[i] == tokenObj->string[ti])
+        {
+            ti++;
+
+            if (ti == tokenObj->len)
+            {             
+                addSplitItem(vm, result, s, len);
+
+                s += len + ti;
+                ti = 0;
+                len = 0;
+            }
+
+            continue;
+        }
+
+        len += ti + 1;
+        ti = 0;
+    }
+
+    addSplitItem(vm, result, s, len);
+
+    return 1;
+}
+
 static const ModuleFunction funcs[] = {
     // name, args, locals, func
     { "toString", 1, 0, toString },
@@ -451,6 +514,7 @@ static const ModuleFunction funcs[] = {
     { "toCapitalized", 1, 0, toCapitalized },
     { "trim", 1, 0, trim },
     { "format", 2, 0, format, 0, 1 },
+    { "split", 2, 0, split },
     { NULL, 0, 0, NULL }
 };
 

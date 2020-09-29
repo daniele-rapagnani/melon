@@ -884,65 +884,109 @@ enum SliceType
     SLICE_START_END
 };
 
-static void opSlice(VM* vm, Instruction* i)
+static void opSliceType(
+    VM* vm, 
+    enum SliceType type, 
+    TType slicedType,
+    GCItem*(*slicer)(VM*, GCItem*, TInteger*, TInteger*)
+)
 {
-    TInt32 index = melM_op_geta25(i->inst);
-    
-    switch(index)
+    switch(type)
     {
         case SLICE_COPY:
             {
-                Value* arr = melPeekStackOfType(vm, MELON_TYPE_ARRAY, 0);
-                GCItem* newArr = melNewArrayFromArray(vm, arr->pack.obj, NULL, NULL);
-                assert(newArr != NULL);
+                Value* v = melPeekStackOfType(vm, slicedType, 0);
+                GCItem* newV = slicer(vm, v->pack.obj, NULL, NULL);
+                assert(newV != NULL);
 
                 melM_stackPopCount(&vm->stack, 1);
-                melM_vstackPushGCItem(&vm->stack, newArr);
+                melM_vstackPushGCItem(&vm->stack, newV);
             }
             break;
 
         case SLICE_START:
             {
-                Value* arr = melPeekStackOfType(vm, MELON_TYPE_ARRAY, 1);
+                Value* v = melPeekStackOfType(vm, slicedType, 1);
                 Value* start = melPeekStackOfType(vm, MELON_TYPE_INTEGER, 0);
 
-                GCItem* newArr = melNewArrayFromArray(vm, arr->pack.obj, &start->pack.value.integer, NULL);
-                assert(newArr != NULL);
+                GCItem* newV = slicer(vm, v->pack.obj, &start->pack.value.integer, NULL);
+                assert(newV != NULL);
 
                 melM_stackPopCount(&vm->stack, 2);
-                melM_vstackPushGCItem(&vm->stack, newArr);
+                melM_vstackPushGCItem(&vm->stack, newV);
             }
             break;
 
         case SLICE_END:
             {
-                Value* arr = melPeekStackOfType(vm, MELON_TYPE_ARRAY, 1);
+                Value* v = melPeekStackOfType(vm, slicedType, 1);
                 Value* end = melPeekStackOfType(vm, MELON_TYPE_INTEGER, 0);
 
-                GCItem* newArr = melNewArrayFromArray(vm, arr->pack.obj, NULL, &end->pack.value.integer);
-                assert(newArr != NULL);
+                GCItem* newV = slicer(vm, v->pack.obj, NULL, &end->pack.value.integer);
+                assert(newV != NULL);
 
                 melM_stackPopCount(&vm->stack, 2);
-                melM_vstackPushGCItem(&vm->stack, newArr);
+                melM_vstackPushGCItem(&vm->stack, newV);
             }
             break;
 
         case SLICE_START_END:
             {
-                Value* arr = melPeekStackOfType(vm, MELON_TYPE_ARRAY, 2);
+                Value* v = melPeekStackOfType(vm, slicedType, 2);
                 Value* start = melPeekStackOfType(vm, MELON_TYPE_INTEGER, 1);
                 Value* end = melPeekStackOfType(vm, MELON_TYPE_INTEGER, 0);
 
-                GCItem* newArr = melNewArrayFromArray(vm, arr->pack.obj, &start->pack.value.integer, &end->pack.value.integer);
-                assert(newArr != NULL);
+                GCItem* newV = slicer(vm, v->pack.obj, &start->pack.value.integer, &end->pack.value.integer);
+                assert(newV != NULL);
 
                 melM_stackPopCount(&vm->stack, 3);
-                melM_vstackPushGCItem(&vm->stack, newArr);
+                melM_vstackPushGCItem(&vm->stack, newV);
             }
             break;
 
         default:
             melM_fatal(vm, "Invalid slice operation");
+            break;
+    }
+}
+
+static void opSlice(VM* vm, Instruction* i)
+{
+    TInt32 index = melM_op_geta25(i->inst);
+    TType type = MELON_TYPE_NONE;
+
+    switch(index)
+    {
+        case SLICE_COPY:
+           type = melPeekStackType(vm, 0);
+           break;
+
+        case SLICE_START:
+        case SLICE_END:
+            type = melPeekStackType(vm, 1);
+            break;
+
+        case SLICE_START_END:
+            type = melPeekStackType(vm, 2);
+            break; 
+        
+        default:
+            melM_fatal(vm, "Invalid slice operation");
+            break;
+    }
+    
+    switch(type)
+    {
+        case MELON_TYPE_STRING:
+            opSliceType(vm, index, MELON_TYPE_STRING, melNewStringFromString);
+            break;
+
+        case MELON_TYPE_ARRAY:
+            opSliceType(vm, index, MELON_TYPE_ARRAY, melNewArrayFromArray);
+            break;
+
+        default:
+            melM_fatal(vm, "Can't slice a value of type '%s'", MELON_TYPES_NAMES[type]);
             break;
     }
 }
