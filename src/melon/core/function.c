@@ -30,6 +30,17 @@ TRet melFreeFunction(VM* vm, GCItem* item)
     
 #ifdef _TRACK_ALLOCATIONS_GC
     printf("Freeing function of " MELON_PRINTF_SIZE " bytes (%p), total bytes now = " MELON_PRINTF_SIZE "\n", size + sizeof(GCItem), item, vm->gc.usedBytes - (size + sizeof(GCItem)));
+
+    Function* f = melM_functionFromObj(item);
+
+    if (f->debug.file != NULL) 
+    {
+        printf(
+            "Function was declared at: %s:" MELON_PRINTF_SIZE "\n",
+            f->debug.file,
+            f->debug.count > 0 ? f->debug.lines[0] : 0
+        );
+    }
 #endif
 
     vm->gc.usedBytes -= size;
