@@ -38,6 +38,8 @@ void melPrintUpvaluesUtils(VM* vm);
 struct StrFormat melDumpGCInfoUtils(VM* vm, TBool includeSize);
 void melPrintGCInfoUtils(VM* vm, TBool includeSize);
 
+void melPrintNativeStackUtils();
+
 TRet melExtractSourceFragmentUtils(
     struct StrFormat* sf, 
     const char* source, 
@@ -60,6 +62,9 @@ void melPrintErrorAtSourceUtils(
     TSize len,
     TSize ctxLen
 );
+
+struct StrFormat melDumpVMCurrentLocation(VM* vm);
+void melPrintVMCurrentLocation(VM* vm);
 
 void melVMPrintFunctionUtils(struct StrFormat* sf, void* ctx);
 

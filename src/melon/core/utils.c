@@ -18,6 +18,14 @@
 #include <windows.h>
 #endif
 
+#ifdef HAVE_UNISTD
+#include <unistd.h>
+#endif
+
+#ifdef HAVE_EXECINFO
+#include <execinfo.h>
+#endif
+
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -128,6 +136,27 @@ static void melDumpClosureObj(GCItem* obj, struct StrFormat* sf)
     }
 }
 
+static void melDumpFunction(GCItem* func, struct StrFormat* sf)
+{
+    Function* fn = melM_functionFromObj(func);
+
+    if (fn->name != NULL)
+    {
+        melDumpStringObj(fn->name, sf);
+    }
+    else
+    {
+        melStringFmtUtils(sf, "%s", "@anonymous@ ");
+    }
+
+    melStringFmtUtils(
+        sf, 
+        " %s:%lld\n", 
+        fn->debug.file,
+        fn->debug.count > 0 ? fn->debug.lines[0] : 0
+    );
+}
+
 static void melDumpArrayObj(GCItem* obj, struct StrFormat* sf)
 {
     Array* arr = melM_arrayFromObj(obj);
@@ -151,7 +180,15 @@ static void melDumpValue(const Value* val, struct StrFormat* sf)
             break;
 
         case MELON_TYPE_OBJECT:
-            melStringFmtUtils(sf, "Object : TObject\n");
+            melStringFmtUtils(
+                sf, 
+#ifdef _DEBUG_GC
+                "Object (%p) : TObject\n", 
+                val->pack.obj
+#else
+                "Object : TObject\n"
+#endif
+            );
             break;
 
         case MELON_TYPE_ARRAY:
@@ -190,8 +227,16 @@ static void melDumpValue(const Value* val, struct StrFormat* sf)
             melStringFmtUtils(sf, " : TSymbol\n");
             break;
 
+        case MELON_TYPE_FUNCTION:
+            melDumpFunction(val->pack.obj, sf);
+            break;
+
         case MELON_TYPE_NONE:
             melStringFmtUtils(sf, "empty\n");
+            break;
+
+        default:
+            melStringFmtUtils(sf, "%s\n", MELON_TYPES_NAMES[val->type]);
             break;
     }
 }
@@ -518,8 +563,58 @@ void melPrintErrorAtSourceUtils(
     }
 
     melStringFmtUtils(&sf, "\n");
-    
     melPrintVM(vm, &sf);
+    melStringFmtFreeUtils(&sf);
+}
+
+struct StrFormat melDumpVMCurrentLocation(VM* vm)
+{
+    struct StrFormat sf;
+    memset(&sf, 0, sizeof(struct StrFormat));
+
+    if (melM_stackIsEmpty(&vm->callStack))
+    {
+        melStringFmtUtils(&sf, "not running");
+        return sf;
+    }
+
+    CallFrame* cf = melM_stackTop(&vm->callStack);
+
+    assert(cf->function != NULL);
+
+    if (cf->function->debug.file != NULL && cf->function->debug.lines)
+    {
+        melStringFmtUtils(
+            &sf, 
+            "%s:%lld\n", 
+            cf->function->debug.file,
+            cf->function->debug.count < cf->pc ? cf->function->debug.lines[cf->pc] : 0
+        );
+    }
+    else
+    {
+        melStringFmtUtils(&sf, "unknown location, pc: " MELON_PRINTF_SIZE "\n", cf->pc);
+    }
+
+    return sf;
+}
+
+void melPrintVMCurrentLocation(VM* vm)
+{
+    struct StrFormat sf = melDumpVMCurrentLocation(vm);
+    melPrintVM(vm, &sf);
+    melStringFmtFreeUtils(&sf);
+}
+
+void melPrintNativeStackUtils()
+{
+#if defined(HAVE_UNISTD) && defined(HAVE_EXECINFO)
+    void *array[10];
+    size_t size = backtrace(array, 10);
+    backtrace_symbols_fd(array, size, STDOUT_FILENO);
+#else
+    printf("melPrintNativeStackUtils unsupported on this platform\n");
+#endif
 }
 
 void melVMPrintFunctionUtils(struct StrFormat* sf, void* ctx)

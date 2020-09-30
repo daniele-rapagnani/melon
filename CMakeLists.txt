@@ -53,6 +53,7 @@ check_include_file("stdio.h" HAVE_STDIO)
 check_include_file("unistd.h" HAVE_UNISTD)
 check_include_file("libgen.h" HAVE_LIBGEN)
 check_include_file("windows.h" HAVE_WINDOWS)
+check_include_file("execinfo.h" HAVE_EXECINFO)
 
 check_symbol_exists(arc4random_buf "stdlib.h" HAVE_ARC4RAND)
 

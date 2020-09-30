@@ -50,12 +50,21 @@ static TByte getCallstackFunc(VM* vm)
     return 1;
 }
 
+static TByte dumpFunc(VM* vm)
+{
+    melM_arg(vm, val, MELON_TYPE_NONE, 0);
+    melPrintValueUtils(vm, val);
+    
+    return 0;
+}
+
 static const ModuleFunction funcs[] = {
     // name, args, locals, func
     { "printStack", 0, 0, &printStackFunc},
     { "printCallstack", 0, 0, &printCallstackFunc},
     { "error", 1, 0, &errorFunc},
     { "getCallstack", 0, 0, &getCallstackFunc},
+    { "dump", 1, 0, &dumpFunc },
     NULL
 };
 
