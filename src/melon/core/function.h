@@ -6,6 +6,7 @@
 #include "melon/core/gc_item.h"
 
 #define melM_functionFromObj(obj) ((Function*)((TPtr)(obj) + sizeof(GCItem)))
+#define melM_functionToObj(obj) ((GCItem*)((TPtr)(obj) - sizeof(GCItem)))
 
 typedef struct VM VM;
 

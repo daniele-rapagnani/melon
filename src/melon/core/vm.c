@@ -246,7 +246,7 @@ static TRet melStepOutOfFunction(VM* vm);
 static TRet melReturnFunction(VM* vm, TUint32 valuesCount);
 
 static Upvalue* melGetOrAddUpvalueVM(VM* vm, Value* value);
-static TRet melCloseUpvaluesVM(VM* vm, Value* upToValue);
+static TRet melCloseUpvaluesVM(VM* vm, GCItem* owner, Value* upToValue);
 
 static Value* getValueFromGlobal(VM* vm, Value* key);
 static TByte melPushIndexedIterator(VM* vm, TType type, NativeIteratorNext nextFunc);
@@ -2085,7 +2085,7 @@ Upvalue* melGetOrAddUpvalueVM(VM* vm, Value* value)
     return uv;
 }
 
-TRet melCloseUpvaluesVM(VM* vm, Value* upToValue)
+TRet melCloseUpvaluesVM(VM* vm, GCItem* owner, Value* upToValue)
 {
     Upvalue* curUv = NULL;
 
@@ -2095,6 +2095,8 @@ TRet melCloseUpvaluesVM(VM* vm, Value* upToValue)
         
         curUv->closed = *curUv->value;
         curUv->value = &curUv->closed;
+
+        melWriteBarrierValueGC(vm, owner, curUv->value);
 
         vm->openUpvalues = curUv->next;
 
@@ -2351,7 +2353,11 @@ static TRet melReturnFunction(VM* vm, TUint32 valuesCount)
 
     if (vm->openUpvalues != NULL)
     {
-        melCloseUpvaluesVM(vm, melM_stackGet(&vm->stack, cf->stackStart - 1));
+        melCloseUpvaluesVM(
+            vm, 
+            melM_functionToObj(cf->function), 
+            melM_stackGet(&vm->stack, cf->stackStart - 1)
+        );
     }
 
     assert(cf->stackStart > 0);
