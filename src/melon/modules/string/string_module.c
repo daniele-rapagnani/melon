@@ -59,7 +59,16 @@ TRet melToString(VM* vm, const Value* se)
         case MELON_TYPE_INTEGER:
             {
                 static char number[MELON_MAX_INT64_CHAR_COUNT];
-                snprintf(number, MELON_MAX_INT64_CHAR_COUNT, "%lld", se->pack.value.integer);
+                snprintf(
+                    number, 
+                    MELON_MAX_INT64_CHAR_COUNT, 
+#ifdef MELON_64BIT
+                    "" MELON_PRINTF_INT "",
+#else
+                    "%ld",
+#endif
+                    se->pack.value.integer
+                );
                 newString = melNewString(vm, number, strlen(number));
             }
             break;
@@ -281,8 +290,8 @@ static TByte find(VM* vm)
     melM_arg(vm, needle, MELON_TYPE_STRING, 1);
     melM_argOptional(vm, start, MELON_TYPE_INTEGER, 2);
 
-    TUint64 index;
-    TUint64 startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
+    TSize index;
+    TSize startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
     Value result;
 
     if (melFirstIndexOfString(vm, haystack->pack.obj, needle->pack.obj, startIndex, &index) == 0)
@@ -308,9 +317,9 @@ static TByte replace(VM* vm)
     melM_argOptional(vm, start, MELON_TYPE_INTEGER, 3);
     melM_argOptional(vm, end, MELON_TYPE_INTEGER, 4);
 
-    TUint64 index;
-    TUint64 startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
-    TUint64 endIndex = end->type == MELON_TYPE_NULL ? 0 : end->pack.value.integer;
+    TSize index;
+    TSize startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
+    TSize endIndex = end->type == MELON_TYPE_NULL ? 0 : end->pack.value.integer;
 
     GCItem* newStr = melNewReplaceString(
         vm,
@@ -385,7 +394,7 @@ static TByte trim(VM* vm)
         frontSpacesCount++;
     }
 
-    for (TSize i = strObj->len; i > frontSpacesCount; i--)
+    for (TSize i = strObj->len; i > frontSpacesCount + 1; i--)
     {
         if (!isspace(strData[i - 1]))
         {
@@ -397,7 +406,10 @@ static TByte trim(VM* vm)
 
     assert((frontSpacesCount + backSpacesCount) <= strObj->len);
 
-    GCItem* newStr = melNewDataString(vm, strObj->len - frontSpacesCount - backSpacesCount);
+    // +1 for the null-termination
+    TSize totalLen = strObj->len - frontSpacesCount - backSpacesCount + 1;
+    GCItem* newStr = melNewDataString(vm, totalLen);
+
     melM_vstackPushGCItem(&vm->stack, newStr);
 
     char* resData = melM_strDataFromObj(newStr);
@@ -427,6 +439,69 @@ static TByte format(VM* vm)
     return 1;
 }
 
+static void addSplitItem(VM* vm, GCItem* arr, const char* start, TSize len)
+{
+    if (len == 0)
+    {
+        return;
+    }
+
+    GCItem* item = melNewString(vm, start, len);
+    
+    Value itemV;
+    itemV.type = item->type;
+    itemV.pack.obj = item;
+
+    melPushArray(vm, arr, &itemV);
+}
+
+static TByte split(VM* vm)
+{
+    melM_arg(vm, str, MELON_TYPE_STRING, 0);
+    melM_arg(vm, token, MELON_TYPE_STRING, 1);
+
+    String* strObj = melM_strFromObj(str->pack.obj);
+    String* tokenObj = melM_strFromObj(token->pack.obj);
+
+    GCItem* result = melNewArray(vm);
+    melM_vstackPushGCItem(&vm->stack, result);
+
+    if (tokenObj->len >= strObj->len)
+    {
+        return 1;
+    }
+
+    TSize ti = 0;
+    TSize len = 0;
+    const char* s = strObj->string;
+
+    for (TSize i = 0; i < strObj->len; i++)
+    {
+        if (strObj->string[i] == tokenObj->string[ti])
+        {
+            ti++;
+
+            if (ti == tokenObj->len)
+            {             
+                addSplitItem(vm, result, s, len);
+
+                s += len + ti;
+                ti = 0;
+                len = 0;
+            }
+
+            continue;
+        }
+
+        len += ti + 1;
+        ti = 0;
+    }
+
+    addSplitItem(vm, result, s, len);
+
+    return 1;
+}
+
 static const ModuleFunction funcs[] = {
     // name, args, locals, func
     { "toString", 1, 0, toString },
@@ -439,6 +514,7 @@ static const ModuleFunction funcs[] = {
     { "toCapitalized", 1, 0, toCapitalized },
     { "trim", 1, 0, trim },
     { "format", 2, 0, format, 0, 1 },
+    { "split", 2, 0, split },
     { NULL, 0, 0, NULL }
 };
 

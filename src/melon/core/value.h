@@ -25,7 +25,7 @@
 #define MELON_TYPE_MAX_ID    15
 
 // The maximum number of character a 64 bit number can take
-#define MELON_MAX_INT64_CHAR_COUNT 19
+#define MELON_MAX_INT64_CHAR_COUNT 21
 #define MELON_MAX_NUMBER_CHAR_COUNT 128
 
 #define melM_isGCItem(x) ((x)->type > MELON_TYPE_MAX_BOXED)
@@ -58,11 +58,13 @@ typedef struct Value
     } pack;
 } Value;
 
+typedef TSize TValueHash;
+
 melM_valFromTypeDec(intVal, TInteger);
 melM_valFromTypeDec(numVal, TNumber);
 
 TRet melCmpValues(VM* vm, Value* a, Value* b, TRet* res);
-TRet melGetHashValue(VM* vm, Value* v, TUint64* hash);
+TRet melGetHashValue(VM* vm, Value* v, TValueHash* hash);
 TRet melToNumberValue(VM* vm, Value* v, Value* out);
 TRet melVisitValue(VM* vm, Value* val, GCItemVisitor visit, void* ctx, TSize depth);
 

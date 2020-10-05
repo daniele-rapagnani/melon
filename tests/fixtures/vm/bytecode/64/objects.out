@@ -1,0 +1,10 @@
+Stack top: 5
+
+Stack:
+---
+0) "value" : TString
+1) 5.000000 : TNumber
+2) "value" : TString
+3) 5.000000 : TNumber
+4) "value" : TString
+---

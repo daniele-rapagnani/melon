@@ -41,21 +41,21 @@ static TByte getCallstackFunc(VM* vm)
         CallFrame* cf = melM_stackGet(&vm->callStack, i);
         
         Value funcNameVal;
-        funcNameVal.type = MELON_TYPE_STRING;
-
-        if (cf->function->name == NULL)
-        {
-            funcNameVal.pack.obj = melNewString(vm, "@anonymous@", strlen("@anonymous@"));
-        }
-        else
-        {
-            funcNameVal.pack.obj = cf->function->name;
-        }
-
+        funcNameVal.type = MELON_TYPE_CLOSURE;
+        funcNameVal.pack.obj = cf->closure;
+        
         melPushArray(vm, arr, &funcNameVal);
     }
 
     return 1;
+}
+
+static TByte dumpFunc(VM* vm)
+{
+    melM_arg(vm, val, MELON_TYPE_NONE, 0);
+    melPrintValueUtils(vm, val);
+    
+    return 0;
 }
 
 static const ModuleFunction funcs[] = {
@@ -64,6 +64,7 @@ static const ModuleFunction funcs[] = {
     { "printCallstack", 0, 0, &printCallstackFunc},
     { "error", 1, 0, &errorFunc},
     { "getCallstack", 0, 0, &getCallstackFunc},
+    { "dump", 1, 0, &dumpFunc },
     NULL
 };
 

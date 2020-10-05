@@ -27,22 +27,22 @@
 #define melM_writeOp1_s25(c, op, v) \
     melUpdateSourceLine(c); \
     melSerializerWriteOp1_s25(&((c)->serializer), op, v); \
-    melM_log("%llu: %s %ld\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(v))
+    melM_log("" MELON_PRINTF_SIZE ": %s %ld\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(v))
 
 #define melM_writeOp1_25(c, op, v) \
     melUpdateSourceLine(c); \
     melSerializerWriteOp1_25(&((c)->serializer), op, v); \
-    melM_log("%llu: %s %llu\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(v))
+    melM_log("" MELON_PRINTF_SIZE ": %s " MELON_PRINTF_SIZE "\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(v))
 
 #define melM_writeOp2_13(c, op, a, b) \
     melUpdateSourceLine(c); \
     melSerializerWriteOp2_13(&((c)->serializer), op, a, b); \
-    melM_log("%llu: %s %llu %llu\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(a), (TInteger)(b))
+    melM_log("" MELON_PRINTF_SIZE ": %s " MELON_PRINTF_SIZE " " MELON_PRINTF_SIZE "\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op, (TInteger)(a), (TInteger)(b))
 
 #define melM_writeOpVoid(c, op) \
     melUpdateSourceLine(c); \
     melSerializerWriteOpVoid(&((c)->serializer), op); \
-    melM_log("%llu: %s\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op)
+    melM_log("" MELON_PRINTF_SIZE ": %s\n", melM_functionFromObj(c->curFunc->func)->debug.lines[c->curFunc->pc - 1], #op)
 
 typedef void(*CompileCb)(Compiler* c);
 typedef void(*CompileDeferedCb)(Compiler* c, const Token* t);
@@ -93,7 +93,15 @@ static void melCompileUnaryOp(Compiler* c);
 static void melCompileBinaryOp(Compiler* c, const Token* t);
 static void melCompileSuffixed(Compiler* c);
 
-#define MAX_PRECEDENCE 8
+#define MAX_PRECEDENCE 13
+
+/**
+ * Operators precedence is inspired by C++ and ES6.
+ *
+ * References:
+ * - https://en.cppreference.com/w/cpp/language/operator_precedence
+ * - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+ */
 
 static struct Operator operators[] = {
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_NONE = 0, */
@@ -107,22 +115,22 @@ static struct Operator operators[] = {
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_SEMICOLON, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_DOT, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_COMMA, */
-    { melCompileUnaryOp, melCompileBinaryOp, MAX_PRECEDENCE - 5, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_STAR, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_SLASH, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_PERCENT, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_PLUS, */
-    { melCompileUnaryOp, melCompileBinaryOp, MAX_PRECEDENCE - 4, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_MINUS, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_PIPE, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE, SCS_BOOLEAN_EXIT_TRUE }, /* MELON_TOKEN_PIPEPIPE, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_AMP, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 1, SCS_BOOLEAN_EXIT_FALSE }, /* MELON_TOKEN_AMPAMP, */
+    { melCompileUnaryOp, melCompileBinaryOp, 1, 2, SCS_NONE }, /* MELON_TOKEN_STAR, */
+    { NULL, melCompileBinaryOp, 0, 2, SCS_NONE }, /* MELON_TOKEN_SLASH, */
+    { NULL, melCompileBinaryOp, 0, 2, SCS_NONE }, /* MELON_TOKEN_PERCENT, */
+    { NULL, melCompileBinaryOp, 0, 3, SCS_NONE }, /* MELON_TOKEN_PLUS, */
+    { melCompileUnaryOp, melCompileBinaryOp, 1, 3, SCS_NONE }, /* MELON_TOKEN_MINUS, */
+    { NULL, melCompileBinaryOp, 0, 9, SCS_NONE }, /* MELON_TOKEN_PIPE, */
+    { NULL, melCompileBinaryOp, 0, 11, SCS_BOOLEAN_EXIT_TRUE }, /* MELON_TOKEN_PIPEPIPE, */
+    { NULL, melCompileBinaryOp, 0, 7, SCS_NONE }, /* MELON_TOKEN_AMP, */
+    { NULL, melCompileBinaryOp, 0, 10, SCS_BOOLEAN_EXIT_FALSE }, /* MELON_TOKEN_AMPAMP, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_QUESTION, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_EQ, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_LT, */
-    { melCompileUnaryOp, melCompileBinaryOp, MAX_PRECEDENCE - 6, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_GT, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_LTEQ, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_GTEQ, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_EQEQ, */
+    { NULL, melCompileBinaryOp, 0, 5, SCS_NONE }, /* MELON_TOKEN_LT, */
+    { melCompileUnaryOp, melCompileBinaryOp, 1, 5, SCS_NONE }, /* MELON_TOKEN_GT, */
+    { NULL, melCompileBinaryOp, 0, 5, SCS_NONE }, /* MELON_TOKEN_LTEQ, */
+    { NULL, melCompileBinaryOp, 0, 5, SCS_NONE }, /* MELON_TOKEN_GTEQ, */
+    { NULL, melCompileBinaryOp, 0, 6, SCS_NONE }, /* MELON_TOKEN_EQEQ, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_EQLT, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_FAT_ARROW, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_BREAK, */
@@ -140,21 +148,21 @@ static struct Operator operators[] = {
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_NUMBER, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_INTEGER, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_STRING, */
-    { melCompileUnaryOp, NULL, MAX_PRECEDENCE - 4, 0, SCS_NONE }, /* MELON_TOKEN_EXCLAMATION, */
-    { melCompileUnaryOp, NULL, MAX_PRECEDENCE - 5, 0, SCS_NONE }, /* MELON_TOKEN_HASH, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_DOTDOT, */
+    { melCompileUnaryOp, NULL, 1, 0, SCS_NONE }, /* MELON_TOKEN_EXCLAMATION, */
+    { melCompileUnaryOp, NULL, 1, 0, SCS_NONE }, /* MELON_TOKEN_HASH, */
+    { NULL, melCompileBinaryOp, 0, 6, SCS_NONE }, /* MELON_TOKEN_DOTDOT, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_FUNC, */
-    { melCompileUnaryOp, melCompileBinaryOp, MAX_PRECEDENCE - 5, MAX_PRECEDENCE - 5, SCS_NONE }, /* MELON_TOKEN_AT, */
+    { melCompileUnaryOp, melCompileBinaryOp, 1, 5, SCS_NONE }, /* MELON_TOKEN_AT, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_RIGHT_ARROW, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_DOLLAR, */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 2, SCS_NONE }, /* MELON_TOKEN_NOTEQ, */
+    { NULL, melCompileBinaryOp, 0, 2, SCS_NONE }, /* MELON_TOKEN_NOTEQ, */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_IN */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_GTGT */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_LTLT */
-    { melCompileUnaryOp, melCompileBinaryOp, MAX_PRECEDENCE - 4, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_CARET */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 3, SCS_NONE }, /* MELON_TOKEN_CARETCARET */
+    { NULL, melCompileBinaryOp, 0, 4, SCS_NONE }, /* MELON_TOKEN_GTGT */
+    { NULL, melCompileBinaryOp, 0, 4, SCS_NONE }, /* MELON_TOKEN_LTLT */
+    { melCompileUnaryOp, melCompileBinaryOp, 1, 8, SCS_NONE }, /* MELON_TOKEN_CARET */
+    { NULL, melCompileBinaryOp, 0, 3, SCS_NONE }, /* MELON_TOKEN_CARETCARET */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_CONTINUE */
-    { NULL, melCompileBinaryOp, 0, MAX_PRECEDENCE - 4, SCS_NONE }, /* MELON_TOKEN_QUESTIONQUESTION */
+    { NULL, melCompileBinaryOp, 0, 12, SCS_NONE }, /* MELON_TOKEN_QUESTIONQUESTION */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_ELLIPSIS */
     { NULL, NULL, 0, 0, SCS_NONE }, /* MELON_TOKEN_EOF */
 };
@@ -489,6 +497,18 @@ static void pushStringConstant(Compiler* c, const char* str, TSize len)
     pushConstant(c, &val);
 }
 
+static void pushStringConstantToken(Compiler* c, const Token* t)
+{
+    if (t->type == MELON_TOKEN_STRING)
+    {
+        pushStringConstant(c, (const char*)t->buffer.buffer, t->buffer.size - 1);
+    }
+    else
+    {
+        pushStringConstant(c, t->start, t->len);
+    }
+}
+
 static void pushNumberConstant(Compiler* c, TNumber value)
 {
     Value val;
@@ -540,7 +560,7 @@ static TRet melCompileObjectDefinition(Compiler* c)
         else
         {
             const Token* t = melCurTokenLexer(&c->lexer);
-            pushStringConstant(c, t->start, t->len);
+            pushStringConstantToken(c, t);
             melAdvanceLexer(&c->lexer);    
         }
 
@@ -603,7 +623,7 @@ static TRet melCompileSymbolLiteral(Compiler* c)
         withLabel = 1;
 
         const Token* t = melCurTokenLexer(&c->lexer);
-        pushStringConstant(c, t->start, t->len);
+        pushStringConstantToken(c, t);
 
         melAdvanceLexer(&c->lexer);
     }
@@ -675,7 +695,7 @@ static TRet melCompileLiteral(Compiler* c)
             break;
 
         case MELON_TOKEN_STRING:
-            pushStringConstant(c, t->start, t->len);
+            pushStringConstantToken(c, t);
             melAdvanceLexer(&c->lexer);
             break;
 
@@ -1147,7 +1167,7 @@ static void melCompilePropertyAccess(Compiler* c, LHSNode* node, TBool methodAcc
     {
         case MELON_TOKEN_NAME:
             node->type = methodAccess ? LHS_METHOD_ACCESS : LHS_OBJ;
-            pushStringConstant(c, t->start, t->len);
+            pushStringConstantToken(c, t);
             break;
 
         default:
@@ -1176,7 +1196,7 @@ static TRet melCompileLHS(Compiler* c, LHSNode* node)
 
         if (node->type == LHS_GLOBAL)
         {
-            pushStringConstant(c, t->start, t->len);
+            pushStringConstantToken(c, t);
         }
 
         melAdvanceLexer(&c->lexer);
@@ -1534,8 +1554,6 @@ static TRet melCompileLocal(Compiler* c)
 
 static TRet melCompileReturn(Compiler* c)
 {
-    c->curFunc->returned = 1;
-
     TVMInstK retNum = 0;
 
     if (melAdvanceIfTypeLexer(&c->lexer, MELON_TOKEN_SEMICOLON) != 0)
@@ -1853,10 +1871,17 @@ static TRet melCompileFunction(Compiler* c, FunctionDef* funcDef)
         }
     }
 
-    if (!c->curFunc->returned)
-    {
-        melM_writeOp1_25(c, MELON_OP_RET, 0);
-    }
+    /*
+        Deciding if the function's body returned something or not is
+        a hard problem. We can't simply look at the last generated instruction
+        because we have no way to tell if it is part of a branch. This is also true
+        for return statements without adding complexity.
+        To make sure that a function always returns we are thus always appending
+        an extra return instruction. In the worst case scenarios this means 4 bytes more
+        for every function in the bytecode.
+    */
+
+    melM_writeOp1_25(c, MELON_OP_RET, 0);
 
     /* @TODO:
         I dont like the fact that we are denormalizing function-related data. 

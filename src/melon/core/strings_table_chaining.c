@@ -33,7 +33,7 @@ static void growStringsTable(StringsTable* st)
     st->strings = realloc(st->strings, sizeof(StringsEntry) * st->capacity);
     memset(st->strings + oldCapacity, 0, sizeof(StringsEntry) * oldCapacity);
 
-    TUint64 newBitMask = (st->capacity - 1) & (~(oldCapacity - 1));
+    TSize newBitMask = (st->capacity - 1) & (~(oldCapacity - 1));
     TSize newBucket;
 
     for(TSize i = 0; i <= oldCapacity; i++)
@@ -89,7 +89,7 @@ static StringsEntry* findValue(StringsTable* st, TSize bucket, const char* str, 
     return NULL;
 }
 
-static StringsEntry* addValue(StringsTable* st, TSize bucket, const char* str, TSize len, TUint64 hash)
+static StringsEntry* addValue(StringsTable* st, TSize bucket, const char* str, TSize len, TSize hash)
 {
     StringsEntry* node = malloc(sizeof(StringsEntry));
     assert(node != NULL);
@@ -124,7 +124,7 @@ char* melAddStringStringsTable(StringsTable* st, const char* str, TSize len, TSi
     if (se != NULL)
     {
         se->refCount++;
-        //printf("[Strings Table] found: %.*s (%.*s), refcount = %llu\n", se->len, se->string, len, str, se->refCount);
+        //printf("[Strings Table] found: %.*s (%.*s), refcount = " MELON_PRINTF_SIZE "\n", se->len, se->string, len, str, se->refCount);
         return se->string;
     }
 
@@ -137,6 +137,10 @@ TRet melRemoveStringStringsTable(StringsTable* st, const char* str, TSize len, T
 {
     TSize bucket = melM_bucket(hash, st);
 
+    assert(bucket >= 0);
+    assert(st->capacity > 0);
+    assert(bucket < st->capacity);
+
     StringsEntry* head = st->strings[bucket];
     StringsEntry** prev = &st->strings[bucket];
 
@@ -147,7 +151,7 @@ TRet melRemoveStringStringsTable(StringsTable* st, const char* str, TSize len, T
             assert(head->refCount > 0);
             head->refCount--;
 
-            //printf("[Strings Table] removing: %.*s, refcount = %llu\n", len, str, head->refCount);
+            //printf("[Strings Table] removing: %.*s, refcount = " MELON_PRINTF_SIZE "\n", len, str, head->refCount);
 
             if (head->refCount == 0)
             {

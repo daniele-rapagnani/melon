@@ -28,11 +28,12 @@ GCItem* melNewDataString(VM* vm, TSize size)
     String* strObj = melM_strFromObj(obj);
     
 #ifdef _TRACK_ALLOCATIONS_GC
-    printf("Allocated string of size %llu (%p), total bytes allocated = %llu\n", objSize + sizeof(GCItem), obj, vm->gc.usedBytes);
+    printf("Allocated string of size " MELON_PRINTF_SIZE " (%p), total bytes allocated = " MELON_PRINTF_SIZE "\n", objSize + sizeof(GCItem), obj, vm->gc.usedBytes);
 #endif
 
     if (size == 0)
     {
+        strObj->len = 0;
         strObj->internalized = 1;
         return obj;
     }
@@ -85,6 +86,38 @@ GCItem* melNewString(VM* vm, const char* str, TSize size)
     return obj;
 }
 
+GCItem* melNewStringFromString(VM* vm, GCItem* s1, TInteger* start, TInteger* end)
+{
+    String* strObj = melM_strFromObj(s1);
+
+    if (strObj->len == 0)
+    {
+        return melNewString(vm, "", 0);
+    }
+
+    TInteger startIdx = start != NULL ? *start : 0;
+    TInteger endIdx = end != NULL ? *end : strObj->len - 1;
+
+    if (startIdx < 0)
+    {
+        startIdx = strObj->len + startIdx;
+    }
+
+    if (endIdx < 0)
+    {
+        endIdx = strObj->len + endIdx;
+    }
+
+    if (startIdx >= strObj->len || endIdx >= strObj->len || endIdx < startIdx)
+    {
+        return melNewString(vm, "", 0);
+    }
+
+    TSize len = (endIdx + 1) - startIdx;
+
+    return melNewString(vm, &(melM_strDataFromObj(s1)[startIdx]), len);
+}
+
 GCItem* melNewStringFromStrings(VM* vm, GCItem* s1, GCItem* s2)
 {
     if (s1->type != MELON_TYPE_STRING || s2->type != MELON_TYPE_STRING)
@@ -107,7 +140,7 @@ GCItem* melNewStringFromStrings(VM* vm, GCItem* s1, GCItem* s2)
     melUpdateStringHash(vm, newObj);
 
 #ifdef _TRACK_ALLOCATIONS_GC
-    printf("Allocated string of size %llu (%p), total bytes allocated = %llu\n", newStrObj->len + 1 +sizeof(String) + sizeof(GCItem), newObj, vm->gc.usedBytes);
+    printf("Allocated string of size " MELON_PRINTF_SIZE " (%p), total bytes allocated = " MELON_PRINTF_SIZE "\n", newStrObj->len + 1 +sizeof(String) + sizeof(GCItem), newObj, vm->gc.usedBytes);
 #endif
 
     return newObj;
@@ -134,7 +167,7 @@ TRet melFreeString(VM* vm, GCItem* s)
 #ifdef _TRACK_ALLOCATIONS_GC
     {
         const char* str = melM_strDataFromObj(s);
-        printf("Freeing string of %llu bytes (%p), total bytes now = %llu\n", size + sizeof(GCItem), s, vm->gc.usedBytes - (size + sizeof(GCItem)));
+        printf("Freeing string of " MELON_PRINTF_SIZE " bytes (%p), total bytes now = " MELON_PRINTF_SIZE "\n", size + sizeof(GCItem), s, vm->gc.usedBytes - (size + sizeof(GCItem)));
         printf("String is: \"%.*s\"\n", ss->len, str);
     }
 #endif  
@@ -167,8 +200,8 @@ TRet melFirstIndexOfString(
     VM* vm, 
     GCItem* haystack, 
     GCItem* needle,
-    TUint64 start,
-    TUint64* index
+    TSize start,
+    TSize* index
 )
 {
     assert(haystack != NULL);
@@ -189,7 +222,7 @@ TRet melFirstIndexOfString(
 
     TInt32 matchLen = 0;
 
-    for (TUint64 i = start; i < haystackStr->len; i++)
+    for (TSize i = start; i < haystackStr->len; i++)
     {
         if (haystackData[i] == needleData[matchLen])
         {
@@ -219,8 +252,8 @@ GCItem* melNewReplaceString(
     GCItem* haystack, 
     GCItem* needle, 
     GCItem* replacement,
-    TUint64* firstIdx,
-    TUint64* lastIdx
+    TSize* firstIdx,
+    TSize* lastIdx
 )
 {
     assert(haystack != NULL);
@@ -232,8 +265,8 @@ GCItem* melNewReplaceString(
 
     String* haystackStr = melM_strFromObj(haystack);
 
-    TUint64 startIdx = firstIdx != NULL ? *firstIdx : 0;
-    TUint64 endIdx = lastIdx != NULL ? *lastIdx : haystackStr->len;
+    TSize startIdx = firstIdx != NULL ? *firstIdx : 0;
+    TSize endIdx = lastIdx != NULL ? *lastIdx : haystackStr->len;
 
     if (startIdx >= endIdx)
     {
@@ -242,9 +275,9 @@ GCItem* melNewReplaceString(
 
     const char* haystackData = melM_strDataFromObj(haystack);
 
-    TUint64 matchIndex;
+    TSize matchIndex;
 
-    TUint64* matches = NULL;
+    TSize* matches = NULL;
     TSize matchesCount = 0;
     TSize matchesCapacity = 0;
 
@@ -255,7 +288,7 @@ GCItem* melNewReplaceString(
             break;
         }
 
-        if (melGrowBuffer((void**)&matches, &matchesCapacity, sizeof(TUint64), ++matchesCount) != 0)
+        if (melGrowBuffer((void**)&matches, &matchesCapacity, sizeof(TSize), ++matchesCount) != 0)
         {
             melM_fatal(vm, "Error resizing string replace matches buffer");
             return NULL;
@@ -279,12 +312,12 @@ GCItem* melNewReplaceString(
 
     GCItem* newString = melNewDataString(vm, newSize + 1);
     char* newStringData = melM_strDataFromObj(newString);
-    TUint64 srcIndex = 0;
-    TUint64 dstIndex = 0;
+    TSize srcIndex = 0;
+    TSize dstIndex = 0;
 
     for (TSize i = 0; i < matchesCount; i++)
     {
-        TUint64 index = matches[i];
+        TSize index = matches[i];
         TSize len = index - srcIndex;
 
         memcpy(&newStringData[dstIndex], &haystackData[srcIndex], len);

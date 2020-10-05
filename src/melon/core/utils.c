@@ -14,6 +14,16 @@
 #elif defined(unix) || defined(__unix__) || defined(__unix)
 #include <time.h>
 #include <sys/time.h>
+#elif defined(__MINGW32__)
+#include <windows.h>
+#endif
+
+#ifdef HAVE_UNISTD
+#include <unistd.h>
+#endif
+
+#ifdef HAVE_EXECINFO
+#include <execinfo.h>
 #endif
 
 #include <stdarg.h>
@@ -126,6 +136,27 @@ static void melDumpClosureObj(GCItem* obj, struct StrFormat* sf)
     }
 }
 
+static void melDumpFunction(GCItem* func, struct StrFormat* sf)
+{
+    Function* fn = melM_functionFromObj(func);
+
+    if (fn->name != NULL)
+    {
+        melDumpStringObj(fn->name, sf);
+    }
+    else
+    {
+        melStringFmtUtils(sf, "%s", "@anonymous@ ");
+    }
+
+    melStringFmtUtils(
+        sf, 
+        " %s:%lld\n", 
+        fn->debug.file,
+        fn->debug.count > 0 ? fn->debug.lines[0] : 0
+    );
+}
+
 static void melDumpArrayObj(GCItem* obj, struct StrFormat* sf)
 {
     Array* arr = melM_arrayFromObj(obj);
@@ -149,7 +180,15 @@ static void melDumpValue(const Value* val, struct StrFormat* sf)
             break;
 
         case MELON_TYPE_OBJECT:
-            melStringFmtUtils(sf, "Object : TObject\n");
+            melStringFmtUtils(
+                sf, 
+#ifdef _DEBUG_GC
+                "Object (%p) : TObject\n", 
+                val->pack.obj
+#else
+                "Object : TObject\n"
+#endif
+            );
             break;
 
         case MELON_TYPE_ARRAY:
@@ -188,8 +227,16 @@ static void melDumpValue(const Value* val, struct StrFormat* sf)
             melStringFmtUtils(sf, " : TSymbol\n");
             break;
 
+        case MELON_TYPE_FUNCTION:
+            melDumpFunction(val->pack.obj, sf);
+            break;
+
         case MELON_TYPE_NONE:
             melStringFmtUtils(sf, "empty\n");
+            break;
+
+        default:
+            melStringFmtUtils(sf, "%s\n", MELON_TYPES_NAMES[val->type]);
             break;
     }
 }
@@ -355,7 +402,7 @@ struct StrFormat melDumpUpvaluesUtils(VM* vm)
     memset(&sf, 0, sizeof(struct StrFormat));
 
     Upvalue* i = vm->openUpvalues;
-    TUint64 count = 0;
+    TSize count = 0;
 
     melStringFmtUtils(&sf, "Upvalues: \n\n");
 
@@ -394,10 +441,10 @@ struct StrFormat melDumpGCInfoUtils(VM* vm, TBool includeSize)
 
     if (includeSize)
     {
-        melStringFmtUtils(&sf, "GC Allocated Bytes: %llu\n", vm->gc.usedBytes);
+        melStringFmtUtils(&sf, "GC Allocated Bytes: " MELON_PRINTF_SIZE "\n", vm->gc.usedBytes);
     }
 
-    melStringFmtUtils(&sf, "GC Allocated Objs: %llu\n", vm->gc.whitesCount);
+    melStringFmtUtils(&sf, "GC Allocated Objs: " MELON_PRINTF_SIZE "\n", vm->gc.whitesCount);
 
     return sf;
 }
@@ -499,7 +546,7 @@ void melPrintErrorAtSourceUtils(
 
     if (line > 0)
     {
-        melStringFmtUtils(&sf, " (at line %lld:%lld):\n\n", line, col);
+        melStringFmtUtils(&sf, " (at line " MELON_PRINTF_INT ":" MELON_PRINTF_INT "):\n\n", line, col);
     }
     else
     {
@@ -516,8 +563,58 @@ void melPrintErrorAtSourceUtils(
     }
 
     melStringFmtUtils(&sf, "\n");
-    
     melPrintVM(vm, &sf);
+    melStringFmtFreeUtils(&sf);
+}
+
+struct StrFormat melDumpVMCurrentLocation(VM* vm)
+{
+    struct StrFormat sf;
+    memset(&sf, 0, sizeof(struct StrFormat));
+
+    if (melM_stackIsEmpty(&vm->callStack))
+    {
+        melStringFmtUtils(&sf, "not running");
+        return sf;
+    }
+
+    CallFrame* cf = melM_stackTop(&vm->callStack);
+
+    assert(cf->function != NULL);
+
+    if (cf->function->debug.file != NULL && cf->function->debug.lines)
+    {
+        melStringFmtUtils(
+            &sf, 
+            "%s:%lld\n", 
+            cf->function->debug.file,
+            cf->function->debug.count < cf->pc ? cf->function->debug.lines[cf->pc] : 0
+        );
+    }
+    else
+    {
+        melStringFmtUtils(&sf, "unknown location, pc: " MELON_PRINTF_SIZE "\n", cf->pc);
+    }
+
+    return sf;
+}
+
+void melPrintVMCurrentLocation(VM* vm)
+{
+    struct StrFormat sf = melDumpVMCurrentLocation(vm);
+    melPrintVM(vm, &sf);
+    melStringFmtFreeUtils(&sf);
+}
+
+void melPrintNativeStackUtils()
+{
+#if defined(HAVE_UNISTD) && defined(HAVE_EXECINFO)
+    void *array[10];
+    size_t size = backtrace(array, 10);
+    backtrace_symbols_fd(array, size, STDOUT_FILENO);
+#else
+    printf("melPrintNativeStackUtils unsupported on this platform\n");
+#endif
 }
 
 void melVMPrintFunctionUtils(struct StrFormat* sf, void* ctx)
@@ -551,6 +648,27 @@ void melGetTimeHD(MelTimeHD* out)
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
     out->nanoSecs = ts.tv_nsec;
     out->secs = ts.tv_sec;
+#elif defined(__MINGW32__)
+    LARGE_INTEGER li;
+
+    if(!QueryPerformanceFrequency(&li))
+    {
+        assert(0);
+    }
+
+    LARGE_INTEGER freq;
+
+    if (!QueryPerformanceFrequency(&freq))
+    {
+        assert(0);
+    }
+
+    LARGE_INTEGER res;
+    res.QuadPart = li.QuadPart / freq.QuadPart;
+    res.QuadPart *= 1000000000;
+
+    out->secs = res.QuadPart / 1000000000;
+    out->nanoSecs = res.QuadPart % 1000000000;
 #else
     #error melGetTimeHD is not implemented for this OS
 #endif

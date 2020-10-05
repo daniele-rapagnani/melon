@@ -32,7 +32,7 @@ typedef struct CallFrame {
     StackSize stackStart;
     StackSize stackBase;
     GCItem* closure;
-    TUint64 pc;
+    TSize pc;
     Function* function;
     TUint16 expRet;
 } CallFrame;

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
 #define melM_error(s, str) ((s)->error ? (s)->error((s)->ctx, str) : 0)
 #define melM_readType(s, ptr, T) melDeserializerReadData(s, (void*)ptr, sizeof(T))
@@ -202,11 +203,16 @@ TRet melDeserializerReadHeader(Deserializer* s, ProgramHeader* h)
 
     if (h->intSize != sizeof(TInteger))
     {
-        melM_error(s, "The bytecode uses a different integer size.");
+        melM_error(
+            s, 
+            "The bytecode uses a different integer size. "
+            "This probably means you are loading a bytecode compiled "
+            "with a 32bit compiler with a 64bit compiler or vice-versa."
+        );
         return 1;
     }
 
-    if (h->intSize != sizeof(TNumber))
+    if (h->numSize != sizeof(TNumber))
     {
         melM_error(s, "The bytecode uses a different floating point value size.");
         return 1;
