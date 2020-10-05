@@ -154,7 +154,7 @@ add_library(
 )
 
 if (MINGW)
-    message(STATUS Disabling stack protector as it is not supported on MinGW)
+    message(STATUS "Disabling stack protector as it is not supported on MinGW")
     add_definitions(-fno-stack-protector)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
@@ -211,5 +211,13 @@ add_executable(
     tests
     tests/main.cpp
 )
+
+if (MINGW)
+    set(MINGW_LD_FLAGS "-static-libgcc" "-static-libstdc++" "-static" "-lpthread")
+    target_link_options(melon PUBLIC ${MINGW_LD_FLAGS})
+    target_link_options(assembler PUBLIC ${MINGW_LD_FLAGS})
+    target_link_options(disassembler PUBLIC ${MINGW_LD_FLAGS})
+    target_link_options(tests PUBLIC ${MINGW_LD_FLAGS})
+endif(MINGW)
 
 target_link_libraries(tests ${LINKLIBS})

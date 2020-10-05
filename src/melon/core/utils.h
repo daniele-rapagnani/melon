@@ -78,4 +78,10 @@ void melGetTimeHD(MelTimeHD* out);
 void melGetTimeDiffHD(const MelTimeHD* start, const MelTimeHD* end, MelTimeHD* out);
 TUint64 melGetTimeDiffNs(const MelTimeHD* start, const MelTimeHD* end);
 
+const char* melConvertToWindowsPath(const char* path, TSize len, TSize* newLen);
+const char* melConvertFromWindowsPath(const char* path, TSize len, TSize* newLen);
+
+const char* melConvertToNativePath(const char* path, TSize len, TSize* newLen);
+const char* melConvertFromNativePath(const char* path, TSize len, TSize* newLen);
+
 #endif // __melon__utils_h__

@@ -1,5 +1,6 @@
 #include "melon/modules/path/path_os_api.h"
 #include "melon/core/tstring.h"
+#include "melon/core/utils.h"
 
 // Using POSIX-2008 for realpath(arg, NULL)
 #define _POSIX_C_SOURCE 200809L
@@ -18,8 +19,12 @@ static TRet transformPath(VM* vm, const Value* path, Value* result, char*(*trans
     static char pathBuff[MELON_COMP_MAX_PATH_SIZE];
 
     char* pathData = melM_strDataFromObj(path->pack.obj);
+
+    TSize newPathSize = 0;
+    const char* convertedPath = melConvertToNativePath(pathData, melM_strFromObj(path->pack.obj)->len, &newPathSize);
+
     memset(&pathBuff, 0, MELON_COMP_MAX_PATH_SIZE);
-    memcpy(&pathBuff, pathData, melM_strFromObj(path->pack.obj)->len);
+    memcpy(&pathBuff, convertedPath, newPathSize);
     
     const char* pathTransformed = transformFunc(pathBuff);
 
@@ -28,8 +33,11 @@ static TRet transformPath(VM* vm, const Value* path, Value* result, char*(*trans
         return 1;
     }
 
+    TSize newLen = 0;
+    const char* newPath = melConvertFromNativePath(pathTransformed, strlen(pathTransformed), &newLen);
+
     result->type = MELON_TYPE_STRING;
-    result->pack.obj = melNewString(vm, pathTransformed, strlen(pathTransformed));
+    result->pack.obj = melNewString(vm, newPath, strlen(newLen));
 
     return 0;
 }
@@ -50,7 +58,9 @@ TRet melPathAPIRealpath(VM* vm, const Value* path, Value* result)
     assert(path->type == MELON_TYPE_STRING);
 
     char* pathData = melM_strDataFromObj(path->pack.obj);
-    char* real = realpath(pathData, NULL); // Using POSIX.1-2008
+    const char* convertedPath = melConvertToNativePath(pathData, melM_strFromObj(path->pack.obj)->len, NULL);
+    
+    char* real = realpath(convertedPath, NULL); // Using POSIX.1-2008
 
     if (real == NULL)
     {
@@ -58,8 +68,11 @@ TRet melPathAPIRealpath(VM* vm, const Value* path, Value* result)
         return 0;
     }
 
+    TSize newLen = 0;
+    const char* newPath = melConvertFromNativePath(real, strlen(real), &newLen);
+
     result->type = MELON_TYPE_STRING;
-    result->pack.obj = melNewString(vm, real, strlen(real));
+    result->pack.obj = melNewString(vm, newPath, newLen);
 
     free(real);
 
