@@ -61,7 +61,7 @@ jobs:
       run: |
         cd "${{ github.workspace }}\\build"
         make
-      shell: cmd
+      shell: msys2 {0}
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
