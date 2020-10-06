@@ -40,9 +40,13 @@ jobs:
       shell: bash
       if: matrix.bits == 64
     
-    - name: Setup Environment
+    - name: Update repo packages
+      continue-on-error: true
       run: | 
         sudo apt-get update -qq
+        
+    - name: Install GCC multilib
+      run: |
         sudo apt-get install gcc-multilib g++-multilib
         
     - name: Run CMake
