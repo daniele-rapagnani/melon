@@ -37,7 +37,7 @@ static TRet transformPath(VM* vm, const Value* path, Value* result, char*(*trans
     const char* newPath = melConvertFromNativePath(pathTransformed, strlen(pathTransformed), &newLen);
 
     result->type = MELON_TYPE_STRING;
-    result->pack.obj = melNewString(vm, newPath, strlen(newLen));
+    result->pack.obj = melNewString(vm, newPath, newLen);
 
     return 0;
 }
