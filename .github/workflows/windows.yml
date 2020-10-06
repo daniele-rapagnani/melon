@@ -18,35 +18,22 @@ jobs:
         include:
         - bits: 32
           ARCH: "i686"
-          COMPILER_PATH: "C:\\msys64\\mingw32\\bin"
+          MSYSTEM: "MINGW64"
           
         - bits: 64
           ARCH: "x86_64"
-          COMPILER_PATH: "C:\\msys64\\mingw64\\bin"
+          MSYSTEM: "MINGW32"
 
     steps:
-    - name: Download Procdump
-      run: |
-        choco install procdump
-      shell: "cmd"
-      
-    - name: Install Procdump
-      run: |
-        mkdir "${{ github.workspace }}\\dumps"
-        procdump -mm -i "${{ github.workspace}}\\dumps"
-        
-    - name: Install VC++ Redis 32 Bit
-      run: |
-        choco install --x86 vcredist2012
-      
+    - name: Setup MSYS
+      uses: msys2/setup-msys2@v2
+      with:
+        release: false
+        msystem: ${{ matrix.MSYSTEM }}
+
     - uses: actions/checkout@v2
       with:
         submodules: "recursive"
-    
-    - name: Install CMake
-      uses: Symbitic/install-cmake@v0.1.0
-      with:
-        cmake: "3.14.4"
         
     - name: Setup BUILD_32 ON
       run: |
@@ -61,27 +48,19 @@ jobs:
         echo "::set-env name=BUILD_BITS::64"
       shell: bash
       if: matrix.bits == 64
-    
-    - name: Setup compiler
-      run: |
-        echo "::set-env name=CC::${{ matrix.ARCH }}-w64-mingw32-gcc.exe"
-        echo "::set-env name=CXX::${{ matrix.ARCH }}-w64-mingw32-g++.exe"
-      shell: bash
         
     - name: Run CMake
+      shell: msys2 {0}
       run: |
-        set PATH=%PATH%;${{ matrix.COMPILER_PATH }}
         cd "${{ github.workspace }}"
         mkdir build
         cd build
-        cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON -DBUILD_32="${{ env.BUILD_32 }}" -DCMAKE_SH="CMAKE_SH-NOTFOUND" -G "MinGW Makefiles" ../
-      shell: cmd
+        cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON -DBUILD_32="${{ env.BUILD_32 }}" -G "MSYS Makefiles" ../
     
     - name: Run Make
       run: |
-        set PATH=%PATH%;${{ matrix.COMPILER_PATH }}
         cd "${{ github.workspace }}\\build"
-        mingw32-make
+        make
       shell: cmd
     
     - name: Upload artifacts
@@ -95,13 +74,6 @@ jobs:
         cd "${{ github.workspace }}\\build"
         melon.exe -v
       shell: cmd
-    
-    - name: Uploading dumps
-      uses: actions/upload-artifact@v2
-      if: failure()
-      with:
-        name: dumps
-        path: "${{ github.workspace }}\\dumps"
     
     - name: Run Tests
       run: |
