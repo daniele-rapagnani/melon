@@ -96,7 +96,7 @@ namespace {
     TByte* readFile(const std::string& path, size_t* size, bool binary = false)
     {
         std::ifstream f;
-        f.open(path, std::ios_base::in | (binary ? std::ios_base::binary : static_cast<std::ios_base::openmode>(0)));
+        f.open(path, std::ios_base::in | std::ios_base::binary);
         REQUIRE(f.is_open());
 
         f.seekg(0, std::ios_base::end);
