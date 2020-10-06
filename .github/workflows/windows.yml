@@ -30,7 +30,7 @@ jobs:
       with:
         release: false
         msystem: ${{ matrix.MSYSTEM }}
-        install: "base-devel mingw-w64-${{ matrix.ARCH }}-toolchain"
+        install: "base-devel mingw-w64-${{ matrix.ARCH }}-toolchain mingw-w64-${{ matrix.ARCH }}-lld"
 
     - name: Set git to use LF
       run: |
