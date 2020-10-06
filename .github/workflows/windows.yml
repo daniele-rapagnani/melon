@@ -18,11 +18,11 @@ jobs:
         include:
         - bits: 32
           ARCH: "i686"
-          MSYSTEM: "MINGW64"
+          MSYSTEM: "MINGW32"
           
         - bits: 64
           ARCH: "x86_64"
-          MSYSTEM: "MINGW32"
+          MSYSTEM: "MINGW64"
 
     steps:
     - name: Setup MSYS
