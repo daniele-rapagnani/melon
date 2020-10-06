@@ -213,7 +213,12 @@ add_executable(
 )
 
 if (MINGW)
-    set(MINGW_LD_FLAGS "-static-libgcc" "-static-libstdc++" "-static" "-lpthread")
+    # On MinGW add static linking of system libraries so that the resulting
+    # executable is portable.
+    # Also use lld to link the binaries: this solves some issues with catch2
+    # and also speeds the build up considerably.
+    
+    set(MINGW_LD_FLAGS "-static-libgcc" "-static-libstdc++" "-static" "-lpthread" "-fuse-ld=lld")
     target_link_options(melon PUBLIC ${MINGW_LD_FLAGS})
     target_link_options(assembler PUBLIC ${MINGW_LD_FLAGS})
     target_link_options(disassembler PUBLIC ${MINGW_LD_FLAGS})
