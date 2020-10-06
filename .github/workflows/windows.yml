@@ -32,6 +32,11 @@ jobs:
         msystem: ${{ matrix.MSYSTEM }}
         install: "base-devel mingw-w64-${{ matrix.ARCH }}-toolchain"
 
+    - name: Set git to use LF
+      run: |
+        git config --global core.autocrlf false
+        git config --global core.eol lf
+
     - uses: actions/checkout@v2
       with:
         submodules: "recursive"
