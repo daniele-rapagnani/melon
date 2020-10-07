@@ -32,10 +32,10 @@ jobs:
       with:
         name: melon-macos
         path: |
-          "${{ github.workspace }}/build/melon"
-          "${{ github.workspace }}/build/assembler"
-          "${{ github.workspace }}/build/disassembler"
-          "${{ github.workspace }}/build/tests"
+          ${{ github.workspace }}/build/melon
+          ${{ github.workspace }}/build/assembler
+          ${{ github.workspace }}/build/disassembler"
+          ${{ github.workspace }}/build/tests
 
     - name: Run Tests
       run: cd "${{ github.workspace }}/tests" && ../build/tests
