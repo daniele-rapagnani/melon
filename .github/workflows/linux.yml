@@ -60,10 +60,10 @@ jobs:
       with:
         name: melon-linux-${{ env.BUILD_BITS }}
         path: |
-          "${{ github.workspace }}/build/melon"
-          "${{ github.workspace }}/build/assembler"
-          "${{ github.workspace }}/build/disassembler"
-          "${{ github.workspace }}/build/tests"
+          ${{ github.workspace }}/build/melon
+          ${{ github.workspace }}/build/assembler
+          ${{ github.workspace }}/build/disassembler
+          ${{ github.workspace }}/build/tests
     
     - name: Check Build Version
       run: |
