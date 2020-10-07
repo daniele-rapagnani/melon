@@ -1,8 +1,8 @@
 #include "melon/modules/path/path_os_api.h"
+#include "melon/core/utils.h"
 #include "melon/core/tstring.h"
 
 #include <windows.h>
-#include <stdio.h>
 
 static TRet transformPath(VM* vm, const Value* path, Value* result, const char*(*transformFunc)(const char *))
 {
@@ -10,7 +10,6 @@ static TRet transformPath(VM* vm, const Value* path, Value* result, const char*(
     assert(path->type == MELON_TYPE_STRING);
 
     char* pathData = melM_strDataFromObj(path->pack.obj);
-    
     const char* pathTransformed = transformFunc(pathData);
 
     if (pathTransformed == NULL)
@@ -73,7 +72,9 @@ static void normalizeResult(const char* path, char* result)
 
 static const char* transformDirname(const char* path)
 {
-    if (splitPath(path) != 0)
+    const char* convertedPath = melConvertToNativePath(path, strlen(path), NULL);
+    
+    if (splitPath(convertedPath) != 0)
     {
         return NULL;
     }
@@ -83,21 +84,24 @@ static const char* transformDirname(const char* path)
         return NULL;
     }
 
-    normalizeResult(path, totalBuf);
+    TSize newLen = 0;
+    char* newPath = (char*)melConvertFromNativePath(totalBuf, strlen(totalBuf), &newLen);
 
-    size_t totalBufLen = strlen(totalBuf);
+    normalizeResult(path, newPath);
 
-    if (totalBufLen > 1 && totalBuf[totalBufLen - 1] == '/')
+    if (newLen > 1 && newPath[newLen - 1] == '/')
     {
-        totalBuf[totalBufLen - 1] = '\0';
+        newPath[newLen - 1] = '\0';
     }
 
-    return totalBuf;
+    return newPath;
 }
 
 static const char* transformBasename(const char* path)
 {
-    if (splitPath(path) != 0)
+    const char* convertedPath = melConvertToNativePath(path, strlen(path), NULL);
+
+    if (splitPath(convertedPath) != 0)
     {
         return NULL;
     }
@@ -107,7 +111,9 @@ static const char* transformBasename(const char* path)
         return NULL;
     }
 
-    normalizeResult(path, totalBuf);
+    char* newPath = (char*)melConvertFromNativePath(totalBuf, strlen(totalBuf), NULL);
+
+    normalizeResult(path, newPath);
     
     return totalBuf;
 }
@@ -128,18 +134,24 @@ TRet melPathAPIRealpath(VM* vm, const Value* path, Value* result)
     assert(path->type == MELON_TYPE_STRING);
 
     char* pathData = melM_strDataFromObj(path->pack.obj);
+    const char* convertedPath = melConvertToNativePath(pathData, melM_strFromObj(path->pack.obj)->len, NULL);
 
     static char buffer[MAX_PATH + 1];
     memset(buffer, 0, MAX_PATH + 1);
     
-    if (GetFullPathNameA(pathData, melM_strFromObj(path->pack.obj)->len, buffer, NULL) == 0)
+    TSize writtenLen = GetFullPathNameA(convertedPath, MAX_PATH, buffer, NULL);
+
+    if (writtenLen > MAX_PATH || writtenLen == 0)
     {
         result->type = MELON_TYPE_NULL;
         return 0;
     }
 
+    TSize newLen = 0;
+    const char* newPath = melConvertFromNativePath(buffer, strlen(buffer), &newLen);
+
     result->type = MELON_TYPE_STRING;
-    result->pack.obj = melNewString(vm, buffer, strlen(buffer));
+    result->pack.obj = melNewString(vm, newPath, newLen);
 
     return 0;
 }

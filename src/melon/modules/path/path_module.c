@@ -1,5 +1,6 @@
 #include "melon/modules/path/path_module.h"
 #include "melon/modules/path/path_os_api.h"
+#include "melon/core/utils.h"
 #include "melon/modules/modules.h"
 
 #include <stdlib.h>

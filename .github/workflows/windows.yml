@@ -1,0 +1,88 @@
+name: Windows
+
+on:
+  push:
+    branches: [ develop, master ]
+  pull_request:
+    branches: [ develop, master ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        bits: [32, 64]
+        include:
+        - bits: 32
+          ARCH: "i686"
+          MSYSTEM: "MINGW32"
+          
+        - bits: 64
+          ARCH: "x86_64"
+          MSYSTEM: "MINGW64"
+
+    steps:
+    - name: Setup MSYS
+      uses: msys2/setup-msys2@v2
+      with:
+        release: false
+        msystem: ${{ matrix.MSYSTEM }}
+        install: "base-devel mingw-w64-${{ matrix.ARCH }}-toolchain mingw-w64-${{ matrix.ARCH }}-lld"
+
+    - name: Set git to use LF
+      run: |
+        git config --global core.autocrlf false
+        git config --global core.eol lf
+
+    - uses: actions/checkout@v2
+      with:
+        submodules: "recursive"
+        
+    - name: Setup BUILD_32 ON
+      run: |
+        echo "::set-env name=BUILD_32::ON"
+        echo "::set-env name=BUILD_BITS::32"
+      shell: bash
+      if: matrix.bits == 32
+    
+    - name: Setup BUILD_32 OFF
+      run: |
+        echo "::set-env name=BUILD_32::OFF"
+        echo "::set-env name=BUILD_BITS::64"
+      shell: bash
+      if: matrix.bits == 64
+        
+    - name: Run CMake
+      shell: msys2 {0}
+      run: |
+        cd "${{ github.workspace }}"
+        mkdir build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON -DBUILD_32="${{ env.BUILD_32 }}" -G "MSYS Makefiles" ../
+    
+    - name: Run Make
+      run: |
+        cd "${{ github.workspace }}\\build"
+        make
+      shell: msys2 {0}
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: melon-windows-${{ env.BUILD_BITS }}
+        path: "${{ github.workspace }}\\build\\*.exe"
+      
+    - name: Print version
+      run: |
+        cd "${{ github.workspace }}\\build"
+        melon.exe -v
+      shell: cmd
+    
+    - name: Run Tests
+      run: |
+        cd "${{ github.workspace }}\\tests"
+        ..\\build\\tests.exe
+      shell: cmd

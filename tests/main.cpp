@@ -96,7 +96,7 @@ namespace {
     TByte* readFile(const std::string& path, size_t* size, bool binary = false)
     {
         std::ifstream f;
-        f.open(path, std::ios_base::in | (binary ? std::ios_base::binary : static_cast<std::ios_base::openmode>(0)));
+        f.open(path, std::ios_base::in | std::ios_base::binary);
         REQUIRE(f.is_open());
 
         f.seekg(0, std::ios_base::end);
@@ -405,6 +405,29 @@ TEST_CASE("Object") {
 
         retVal = melGetValueObject(&vm, obj, &key);
         REQUIRE(retVal == NULL);
+    }
+}
+
+TEST_CASE("Multiplatform Paths") {
+    SECTION("To Windows") {
+        auto t = [] (const char* path, const char* expected) {
+            TSize newLen = 0;
+            const char* res = melConvertToWindowsPath(path, strlen(path), &newLen);
+
+            REQUIRE(std::string(res) == std::string(expected));
+            REQUIRE(strlen(expected) == newLen);
+        };
+
+        t("", "");
+        t("/", "C:\\");
+        t("file.ext", "file.ext");
+        t("./file.ext", ".\\file.ext");
+        t("./../file.ext", ".\\..\\file.ext");
+        t("./../dir/other/dir/file.ext", ".\\..\\dir\\other\\dir\\file.ext");
+        t(".", ".");
+        t("..", "..");
+        t("D:/", "D:\\");
+        t("D:/some/dir/and/file.ext", "D:\\some\\dir\\and\\file.ext");
     }
 }
 

@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
 
 static const TUint64 NS_IN_SECS = 1000000000;
 
@@ -696,4 +697,173 @@ TUint64 melGetTimeDiffNs(const MelTimeHD* start, const MelTimeHD* end)
     MelTimeHD time;
     melGetTimeDiffHD(start, end, &time);
     return (time.secs * NS_IN_SECS) + time.nanoSecs;
+}
+
+static char getWindowsDriveLetter(const char* path, TSize len)
+{
+    if (len >= 3 && isalpha(path[0]) && path[1] == ':' && path[2] == '\\')
+    {
+        return toupper(path[0]);
+    }
+
+    return '\0';
+}
+
+static TBool isWindowsPath(const char* path, TSize len)
+{
+    char drive = getWindowsDriveLetter(path, len);
+
+    if (drive != '\0')
+    {
+        return 1;
+    }
+
+    for(TSize i = 0; i < len; i++)
+    {
+        if (path[i] == '/')
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+// Unix path converted to Windows path may have
+// three more bytes for the drive letter (eg: C:/)
+#define WIN_PATH_EXTRA_BYTES 3
+
+static char* buffer = NULL;
+static TSize bufferSize = 0;
+
+const char* melConvertToWindowsPath(const char* path, TSize len, TSize* newLen)
+{
+    TSize newLenLocal = 0;
+
+    if (newLen == NULL)
+    {
+        newLen = &newLenLocal;
+    }
+
+    *newLen = len;
+
+    if (len == 0)
+    {
+        return path;
+    }
+
+    if (isWindowsPath(path, len))
+    {
+        return path;
+    }
+    
+    if (buffer == NULL || *newLen > bufferSize)
+    {
+       if (melGrowBuffer((void**)&buffer, &bufferSize, 1, *newLen + WIN_PATH_EXTRA_BYTES + 1) != 0)
+       {
+           return NULL;
+       }
+    }
+
+    TSize startSrcIdx = 0;
+    TSize startDstIdx = 0;
+
+    if (path[0] == '/')
+    {
+        buffer[0] = 'C';
+        buffer[1] = ':';
+        buffer[2] = '\\';
+        
+        startDstIdx += WIN_PATH_EXTRA_BYTES;
+        startSrcIdx++;
+        *newLen += (WIN_PATH_EXTRA_BYTES - 1);
+    }
+
+    for (TSize i = 0; i < len - startSrcIdx; i++)
+    {
+        buffer[startDstIdx + i] = path[startSrcIdx + i] == '/' ? '\\' : path[startSrcIdx + i];
+    }
+
+    buffer[*newLen] = '\0';
+
+    return buffer;
+}
+
+const char* melConvertFromWindowsPath(const char* path, TSize len, TSize* newLen)
+{
+    TSize newLenLocal = 0;
+
+    if (newLen == NULL)
+    {
+        newLen = &newLenLocal;
+    }
+
+    *newLen = len;
+
+    if (len == 0)
+    {
+        return path;
+    }
+
+    if (!isWindowsPath(path, len))
+    {
+        return path;
+    }
+    
+    if (buffer == NULL || len > bufferSize)
+    {
+       if (melGrowBuffer((void**)&buffer, &bufferSize, 1, *newLen + 1) != 0)
+       {
+           return NULL;
+       }
+    }
+
+    char drive = getWindowsDriveLetter(path, len);
+    TSize startSrcIdx = 0;
+    TSize startDstIdx = 0;
+
+    if (drive == 'C')
+    {
+        buffer[0] = '/';
+        startDstIdx++;
+        startSrcIdx += WIN_PATH_EXTRA_BYTES;
+        *newLen -= (WIN_PATH_EXTRA_BYTES - 1);
+    }
+
+    for (TSize i = 0; i < len - startSrcIdx; i++)
+    {
+        buffer[startDstIdx + i] = path[startSrcIdx + i] == '\\' ? '/' : path[startSrcIdx + i];
+    }
+
+    buffer[*newLen] = '\0';
+
+    return buffer;
+}
+
+const char* melConvertToNativePath(const char* path, TSize len, TSize* newLen)
+{
+#if defined(__MINGW32__) || defined(_MSC_VER)
+    return melConvertToWindowsPath(path, len, newLen);
+#else
+    if (newLen != NULL)
+    {
+        *newLen = len;
+    }
+
+    return path;
+#endif
+}
+
+const char* melConvertFromNativePath(const char* path, TSize len, TSize* newLen)
+{
+#if defined(__MINGW32__) || defined(_MSC_VER)
+    return melConvertFromWindowsPath(path, len, newLen);
+#else
+    if (newLen)
+    {
+        *newLen = len;
+    }
+
+    return path;
+#endif
 }
