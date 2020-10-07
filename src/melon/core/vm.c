@@ -1187,6 +1187,8 @@ static void opStoreUpval(VM* vm, Instruction* i)
     Upvalue** upvalues = melM_closureUpvaluesFromObj(cf->closure);
     *(upvalues[upvalNum]->value) = *se;
 
+    melWriteBarrierValueGC(vm, cf->closure, se);
+
     melM_stackPop(&vm->stack);
 }
 
@@ -2015,6 +2017,13 @@ static Upvalue* melAddUpvalue(VM* vm, Value* value)
     vm->gc.usedBytes += sizeof(Upvalue);
     vm->gc.whitesCount++;
 
+#ifdef _DEBUG_GC
+    if (melM_isGCItem(value))
+    {
+        printf("Creating upvalue for item: %p\n", value->pack.obj);
+    }
+#endif
+
     return uv;
 }
 
@@ -2022,6 +2031,10 @@ static TRet melFreeUpvalue(VM* vm, Upvalue* uv)
 {
 #ifdef _ZERO_MEMORY_ON_FREE_GC
     memset(uv, 0, sizeof(Upvalue));
+#endif
+
+#ifdef _TRACK_ALLOCATIONS_GC
+    printf("Freeing upvalue %p", uv);
 #endif
 
     free(uv);

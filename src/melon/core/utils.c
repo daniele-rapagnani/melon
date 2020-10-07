@@ -106,8 +106,10 @@ static void melDumpClosureObj(GCItem* obj, struct StrFormat* sf)
     {
         melStringFmtUtils(sf, "%s", "@anonymous@");
     }
-    
-    melStringFmtUtils(sf, " (%p)", fn);
+
+#ifdef _DEBUG_GC
+    melStringFmtUtils(sf, " (item = %p, fn = %p)", obj, fn);
+#endif
 
     Upvalue** upvalues = melM_closureUpvaluesFromObj(obj);
 
@@ -122,7 +124,11 @@ static void melDumpClosureObj(GCItem* obj, struct StrFormat* sf)
 
         if (uv->value->type != MELON_TYPE_CLOSURE || uv->value->pack.obj != obj)
         {
+#ifdef _DEBUG_GC
+            melStringFmtUtils(sf, "    - (%s) (%p) ", uv->value == &uv->closed ? "closed" : "open", uv);
+#else
             melStringFmtUtils(sf, "    - (%s) ", uv->value == &uv->closed ? "closed" : "open");
+#endif
             melDumpValueIndexed(i, uv->value, sf);
         }
         else
