@@ -11,6 +11,7 @@ module.exports = {
               "number",
               "bool",
               "string",
+              "object",
               "null"
             ]
           }

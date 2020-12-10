@@ -38,4 +38,4 @@ myGlobalVar = "I'm inside a global variable";
 
 Global variables are shared by the entire **VM** instance and can be accessed from anywhere.
 
-The language uses global variables to expose core modules to the programmer, such as the `io` or `fs` module.
+The language uses global variables to expose core modules to the programmer, such as the [`io`](io_module.md) or [`fs`](fs_module.md) module.

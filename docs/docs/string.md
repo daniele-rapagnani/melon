@@ -14,7 +14,7 @@ let myStringVar = "Hello, world!";
 
 Strings are immutable, this means that whenever you want to modify a string you'll get a new one and the original one will remain unchanged.
 
-### String length
+## String length
 
 You can use the size operator `#` to retrive the size of a `String`:
 
@@ -24,7 +24,7 @@ io.print(#myString); // 5
 io.print(#"") // 0
 ```
 
-### Strings concatenation
+## Strings concatenation
 
 A `String` can be created by concatenating two other `String` values by using the concatenation operator `..`:
 
@@ -37,7 +37,7 @@ io.print(stringC); // Hello, world!
 io.print(stringA .. stringA .. stringC); // Hello, Hello, Hello, world!
 ```
 
-### Accessing individual characters
+## Accessing individual characters
 
 The indexing operator can be used to read individual characters in a `String`:
 
@@ -54,7 +54,7 @@ io.print(stringA[3]); // l
 Given that strings are immutable, you can't change a character by using indexed assignment.
 :::
 
-###  Accessing with ranges
+##  Accessing with ranges
 
 You can use index ranges to extract a portion of a string, 
 much as you would with an [`Array`](array.md) value:
@@ -67,7 +67,7 @@ io.print(stringA[:-1] .. "!"); // Hell!
 io.print(stringA[-2:]); // lo
 ```
 
-### String manipulation
+## String manipulation
 
 Most string manipulation functions can be found in the [`string`](string_module.md) module.
 
