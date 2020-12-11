@@ -6,6 +6,9 @@ slug: /types/string
 ---
 
 A `String` value represents a sequence of characters.
+
+## Creating strings
+
 A string can be created by wrapping the characters in double quotes:
 
 ```js
@@ -56,7 +59,7 @@ Given that strings are immutable, you can't change a character by using indexed 
 
 ##  Accessing with ranges
 
-You can use index ranges to extract a portion of a string, 
+You can use slicing to extract a portion of a string, 
 much as you would with an [`Array`](array.md) value:
 
 ```js
@@ -69,7 +72,7 @@ io.print(stringA[-2:]); // lo
 
 ## String manipulation
 
-Most string manipulation functions can be found in the [`string`](string_module.md) module.
+Most string manipulation functions can be found in the [`string`](string_module.md) core module.
 
 ## VM Internals
 

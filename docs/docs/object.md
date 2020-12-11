@@ -177,7 +177,7 @@ This lookup is performed recursively on the whole prototype chain until an objec
 This mechanism can be used to do OOP, specifically [prototype based programming](https://en.wikipedia.org/wiki/Prototype-based_programming).
 :::
 
-## Methods
+## Method access operator
 
 As we know, an `Object` can contain a [`Closure`](closure.md) as one of its values. Most OOP languages provide the concept of a *method*, which is a function which is invoked on an object and is able to alter its internal state by using a reference to the object on which it's invoked.
 In melon we can achieve a similar result with:
@@ -194,7 +194,7 @@ myObj.changeState(myObj);
 io.print(myObj.state); // 11
 ```
 
-The `myObj` in the example above si clearly redundant so melon provides syntactic sugar to make the example above more expressive:
+The `myObj` in the example above si clearly redundant so melon provides syntactic sugar to make it more expressive:
 
 ```js
 let myObj = {
@@ -220,3 +220,9 @@ io.print(myObj.state); // 11
 ```
 
 Basically the **method access** `->` operator silently passes the object on which it is being used as the first parameter of the closure you are accessing with it.
+
+See also [`Closure`](closure.md) for a better understanding of the `this` keyword and of `->` vs `=>` when creating closures.
+
+## Further object manipulation
+
+There are other ways to manipulate `Object` values, they can be found in the [`object`](object_module.md) core module.

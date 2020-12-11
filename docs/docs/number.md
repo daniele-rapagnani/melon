@@ -21,7 +21,7 @@ let myInteger = 10;
 let myNumber = 10.0;
 ```
 
-## Combining with integers
+## Mixing numbers and integers
 
 Combining `Number` values and `Integer` values with basic operations work as you would expect: `Integer` values are promoted to `Number` values and the result is a `Number` value.
 However comparing `Integer`s and `Number`s is not allowed to avoid any ambiguity, you have to convert one to the other:

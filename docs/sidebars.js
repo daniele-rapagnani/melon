@@ -11,7 +11,11 @@ module.exports = {
               "number",
               "bool",
               "string",
+              "array",
               "object",
+              "range",
+              "symbol",
+              "iterator",
               "null"
             ]
           }
