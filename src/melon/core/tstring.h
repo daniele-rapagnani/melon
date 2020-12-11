@@ -10,8 +10,8 @@
 
 typedef struct String
 {
-    TUint64 len;
-    TUint64 hash;
+    TSize len;
+    TValueHash hash;
     TBool internalized : 1;
     char* string;
 } String;
@@ -19,6 +19,7 @@ typedef struct String
 GCItem* melNewString(VM* vm, const char* str, TSize size);
 GCItem* melNewDataString(VM* vm, TSize size);
 TRet melUpdateStringHash(VM* vm, GCItem* s);
+GCItem* melNewStringFromString(VM* vm, GCItem* s1, TInteger* start, TInteger* end);
 GCItem* melNewStringFromStrings(VM* vm, GCItem* s1, GCItem* s2);
 TRet melFreeString(VM* vm, GCItem* s);
 TRet melCmpStrings(VM* vm, GCItem* s1, GCItem* s2);
@@ -27,8 +28,8 @@ TRet melFirstIndexOfString(
     VM* vm, 
     GCItem* haystack, 
     GCItem* needle, 
-    TUint64 start, 
-    TUint64* index
+    TSize start, 
+    TSize* index
 );
 
 GCItem* melNewReplaceString(
@@ -36,8 +37,8 @@ GCItem* melNewReplaceString(
     GCItem* haystack, 
     GCItem* needle, 
     GCItem* replacement,
-    TUint64* firstIdx,
-    TUint64* lastIdx
+    TSize* firstIdx,
+    TSize* lastIdx
 );
 
 #endif // __melon__tstring_h__

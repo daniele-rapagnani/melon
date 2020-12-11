@@ -2,6 +2,7 @@
 #define __melon__lexer_h__
 
 #include "melon/core/types.h"
+#include "melon/core/buffer.h"
 
 typedef enum {
     MELON_TOKEN_NONE = 0,
@@ -65,12 +66,13 @@ typedef enum {
     MELON_TOKEN_QUESTIONQUESTION,
     MELON_TOKEN_ELLIPSIS,
     MELON_TOKEN_EOF
-} TokenType;
+} MelTokenType;
 
 typedef struct Token 
 {
-    TokenType type;
+    MelTokenType type;
     const char* start;
+    Buffer buffer;
     TUint32 len;
     TSize line;
     TSize column;
@@ -108,10 +110,10 @@ TRet melAdvanceLexer(Lexer* l);
 const Token* melCurTokenLexer(Lexer* l);
 const Token* melPeekLexer(Lexer* l);
 TRet melPopLexer(Lexer* l, Token* outToken);
-TRet melPopTypeLexer(Lexer* l, TokenType t);
-TRet melCheckTokenLexer(Lexer* l, TokenType t);
-TRet melCheckPeekedTokenLexer(Lexer* l, TokenType t);
-TRet melEnsureTokenLexer(Lexer* l, TokenType t);
-TRet melAdvanceIfTypeLexer(Lexer* l, TokenType t);
+TRet melPopTypeLexer(Lexer* l, MelTokenType t);
+TRet melCheckTokenLexer(Lexer* l, MelTokenType t);
+TRet melCheckPeekedTokenLexer(Lexer* l, MelTokenType t);
+TRet melEnsureTokenLexer(Lexer* l, MelTokenType t);
+TRet melAdvanceIfTypeLexer(Lexer* l, MelTokenType t);
 
 #endif // __melon__lexer_h__

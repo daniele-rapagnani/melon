@@ -1,0 +1,18 @@
+Stack top: 13
+
+Stack:
+---
+0) true : TBool
+1) false : TBool
+2) false : TBool
+3) true : TBool
+4) true : TBool
+5) true : TBool
+6) false : TBool
+7) false : TBool
+8) true : TBool
+9) false : TBool
+10) null : TNull
+11) false : TBool
+12) true : TBool
+---

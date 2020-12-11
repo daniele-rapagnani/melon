@@ -245,6 +245,10 @@ TRet melRegisterModule(VM* vm, const char* name, ModuleInitFunc initFunc)
     StackEntry* obj = melM_stackOffset(&vm->stack, 0);
     assert(obj->type == MELON_TYPE_OBJECT);
 
+#ifdef _DEBUG_GC
+    printf("[Modules] Module registered '%s': %p\n", name, obj->pack.obj);
+#endif
+
     GCItem* nameString = melNewString(vm, name, strlen(name));
     melM_vstackPushGCItem(&vm->stack, nameString); // Avoid GCing
 

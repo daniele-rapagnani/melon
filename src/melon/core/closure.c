@@ -25,7 +25,7 @@ GCItem* melNewClosure(VM* vm, GCItem* fnObj)
     melWriteBarrierGC(vm, obj, fnObj);
 
 #ifdef _TRACK_ALLOCATIONS_GC
-    printf("Allocated closure of size %llu (%p), total bytes allocated = %llu\n", objSize + sizeof(GCItem), obj, vm->gc.usedBytes);
+    printf("Allocated closure of size " MELON_PRINTF_SIZE " (%p), total bytes allocated = " MELON_PRINTF_SIZE "\n", objSize + sizeof(GCItem), obj, vm->gc.usedBytes);
 #endif
 
     return obj;
@@ -39,7 +39,7 @@ TRet melFreeClosure(VM* vm, GCItem* item)
     TSize size = sizeof(Closure) + (sizeof(Upvalue*) * fn->upvaluesInfos.count);
 
 #ifdef _TRACK_ALLOCATIONS_GC
-    printf("Freeing closure of %llu bytes (%p), total bytes now = %llu\n", size + sizeof(GCItem), item, vm->gc.usedBytes - (size + sizeof(GCItem)));
+    printf("Freeing closure of " MELON_PRINTF_SIZE " bytes (%p), total bytes now = " MELON_PRINTF_SIZE "\n", size + sizeof(GCItem), item, vm->gc.usedBytes - (size + sizeof(GCItem)));
 #endif
 
     vm->gc.usedBytes -= size;

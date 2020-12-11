@@ -79,10 +79,24 @@ void check(VM& vm, T expected)
 }
 
 namespace {
+    bool fileExists(const std::string& path)
+    {
+        std::ifstream f;
+        f.open(path, std::ios_base::in);
+        bool exists = f.is_open();
+
+        if (f.is_open())
+        {
+            f.close();
+        }
+
+        return exists;
+    }
+    
     TByte* readFile(const std::string& path, size_t* size, bool binary = false)
     {
         std::ifstream f;
-        f.open(path, std::ios_base::in | (binary ? std::ios_base::binary : static_cast<std::ios_base::openmode>(0)));
+        f.open(path, std::ios_base::in | std::ios_base::binary);
         REQUIRE(f.is_open());
 
         f.seekg(0, std::ios_base::end);
@@ -135,7 +149,14 @@ namespace {
 
     void runByteCodeBufferTest(VM* vm, TByte* prog, size_t progSize, const std::string& path)
     {
-        std::string expectedRes = readTextFile(path + ".out");
+        std::string resPath = path + "_" MELON_ARCH_BITS ".out";
+
+        if (!fileExists(resPath))
+        {
+            resPath = path + ".out";
+        }
+
+        std::string expectedRes = readTextFile(resPath);
         std::string output = "";
 
         VM vmNew;
@@ -186,12 +207,12 @@ namespace {
         REQUIRE(melCreateCompiler(&c, &vm, source.c_str(), source.size()) == 0);
 
         c.lexer.error = [] (void* ctx, const char* message, const char* file, TSize line, TSize column) {
-            printf("Parsing error at %s %llu:%llu - %s\n", file ? file : "Unknown file", line, column, message);
+            printf("Parsing error at %s " MELON_PRINTF_SIZE ":" MELON_PRINTF_SIZE " - %s\n", file ? file : "Unknown file", line, column, message);
             assert(0);
         };
 
         c.error = [] (void* ctx, const char* message, const char* file, TSize line, TSize column) {
-            printf("Compilation error at %s %llu:%llu - %s\n", file ? file : "Unknown file", line, column, message);
+            printf("Compilation error at %s " MELON_PRINTF_SIZE ":" MELON_PRINTF_SIZE " - %s\n", file ? file : "Unknown file", line, column, message);
             assert(0);
         };
 
@@ -259,7 +280,7 @@ namespace {
         closedir(dir);
     }
 
-    void assertToken(const std::string& source, TokenType type, uint32_t len)
+    void assertToken(const std::string& source, MelTokenType type, uint32_t len)
     {
         Lexer lexer;
         REQUIRE(melCreateLexer(&lexer, source.c_str(), source.size()) == 0);
@@ -387,9 +408,32 @@ TEST_CASE("Object") {
     }
 }
 
+TEST_CASE("Multiplatform Paths") {
+    SECTION("To Windows") {
+        auto t = [] (const char* path, const char* expected) {
+            TSize newLen = 0;
+            const char* res = melConvertToWindowsPath(path, strlen(path), &newLen);
+
+            REQUIRE(std::string(res) == std::string(expected));
+            REQUIRE(strlen(expected) == newLen);
+        };
+
+        t("", "");
+        t("/", "C:\\");
+        t("file.ext", "file.ext");
+        t("./file.ext", ".\\file.ext");
+        t("./../file.ext", ".\\..\\file.ext");
+        t("./../dir/other/dir/file.ext", ".\\..\\dir\\other\\dir\\file.ext");
+        t(".", ".");
+        t("..", "..");
+        t("D:/", "D:\\");
+        t("D:/some/dir/and/file.ext", "D:\\some\\dir\\and\\file.ext");
+    }
+}
+
 TEST_CASE("VM") {
     SECTION("Bytecode") {
-        runDirTests("fixtures/vm/bytecode");
+        runDirTests("fixtures/vm/bytecode/" MELON_ARCH_BITS);
     }
 }
 
@@ -406,7 +450,7 @@ TEST_CASE("Lexer") {
         REQUIRE(melAdvanceLexer(&lexer) == 0);
 
         lexer.error = [] (void* ctx, const char* message, const char* file, TSize line, TSize column) {
-            printf("Parsing error at %s %llu:%llu - %s\n", file ? file : "Unknown file", line, column, message);
+            printf("Parsing error at %s " MELON_PRINTF_SIZE ":" MELON_PRINTF_SIZE " - %s\n", file ? file : "Unknown file", line, column, message);
             assert(0);
         };
 

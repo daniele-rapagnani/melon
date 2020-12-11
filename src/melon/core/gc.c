@@ -34,10 +34,11 @@
 
 #ifdef _DEBUG_GC
 #define melM_gcLog(...) printf("[GC] " __VA_ARGS__); fflush(stdout)
+#define melM_gcLogObj(vm, obj, ...) printf("[GC] " __VA_ARGS__); melPrintGCItemUtils(vm, obj)
 #else
 #define melM_gcLog(...) do { } while(0)
+#define melM_gcLogObj(obj, ...) do { } while(0)
 #endif
-
 #ifdef MELON_GC_STATS_ENABLED
 #define melM_gcStatsUpdate(block) \
     { \
@@ -227,21 +228,21 @@ TRet melDumpGlobalStatsGC(GC* gc)
 
     printf(
         "=== GC stats ===\n"
-        "total collections = %llu\n"
+        "total collections = " MELON_PRINTF_SIZE "\n"
         "time collecting: %fs\n"
         "total time: %fs\n"
         "time percent collecting: %f%%\n"
-        "total scanned: %llu\n"
-        "total freed: %llu\n"
+        "total scanned: " MELON_PRINTF_SIZE "\n"
+        "total freed: " MELON_PRINTF_SIZE "\n"
         "efficency = %f%%\n"
-        "total minor collections: %llu\n"
-        "total major collections: %llu\n"
-        "total mark iterations: %llu\n"
-        "total sweep iterations: %llu\n"
+        "total minor collections: " MELON_PRINTF_SIZE "\n"
+        "total major collections: " MELON_PRINTF_SIZE "\n"
+        "total mark iterations: " MELON_PRINTF_SIZE "\n"
+        "total sweep iterations: " MELON_PRINTF_SIZE "\n"
         "avg mark iterations per collection: %f\n"
         "avg sweep iterations per collection: %f\n"
         "max pause = %fms\nmin pause = %fms\navg pause time: %fms\navg time per free = %fms\n"
-        "total reclaimed: %llu bytes\n===\n", 
+        "total reclaimed: " MELON_PRINTF_SIZE " bytes\n===\n", 
         collections,
         gstats->totalTimeInGC / 1000000000.0f,
         gstats->totalTimeRuntime / 1000000000.0f,
@@ -370,6 +371,8 @@ TRet melRestorePauseGC(VM* vm, GC* gc)
 
 static TRet melProcessGreyStack(VM* vm, GC* gc, TSize unitOfWorkCap)
 {
+    melM_gcLog(" --- Processing grey stack\n");
+
     while(gc->greyStackSize > 0)
     {
         assert(gc->greyStackSize > 0);
@@ -383,12 +386,14 @@ static TRet melProcessGreyStack(VM* vm, GC* gc, TSize unitOfWorkCap)
         }
     }
 
+    melM_gcLog(" ---- Processing grey stack ended\n");
+
     return 0;
 }
 
 static void melSwapColorMarkers(GC* gc)
 {
-    melM_gcLog("Swapping whites and blacks");
+    melM_gcLog("Swapping whites and blacks\n");
 
     TUint8 tmp = gc->whiteMarker;
     gc->whiteMarker = gc->blackMarker;
@@ -405,6 +410,8 @@ static void melSwapColorMarkers(GC* gc)
 
 static void melEndMajorCycle(GC* gc)
 {
+    melM_gcLog(" ------ Major cycle ended\n");
+
     melStatsEndCycle(gc);
     melSwapColorMarkers(gc);
     
@@ -419,33 +426,54 @@ static void melEndMajorCycle(GC* gc)
 static void melMarkRoots(VM* vm, GC* gc)
 {
     RootNodeGC* curRoot = gc->rootsList;
+ 
+    melM_gcLog(" --- Marking roots grey\n");
 
     while (curRoot != NULL)
     {
-        melMarkGreyGC(gc, curRoot->item);
+        melMarkGreyGC(vm, gc, curRoot->item);
         curRoot = curRoot->next;
     }
 
+    melM_gcLog(" --- Roots marked\n");
+    melM_gcLog(" --- Marking stack grey\n");
+
+#ifdef _DEBUG_GC
+    melPrintStackUtils(vm);
+#endif
+
     for (TSize i = 0; i < vm->stack.top; i++)
     {
-        melMarkGreyValueGC(gc, &vm->stack.stack[i]);
+        melMarkGreyValueGC(vm, gc, &vm->stack.stack[i]);
     }
+
+    melM_gcLog(" --- Stack marked\n");
+    melM_gcLog(" --- Marking call stack grey\n");
+
+#ifdef _DEBUG_GC
+    melPrintCallStackUtils(vm);
+#endif
 
     for (TSize i = 0; i < vm->callStack.top; i++)
     {
         CallFrame* cf = melM_stackGet(&vm->callStack, i);
-        melMarkGreyGC(gc, cf->closure);
+        melMarkGreyGC(vm, gc, cf->closure);
     }
+
+    melM_gcLog(" --- Call stack marked\n");
+    melM_gcLog(" --- Marking range iterator pool grey\n");
 
     for (TSize i = 0; i < gc->rangeIteratorPoolCount; i++)
     {
-        melMarkGreyGC(gc, gc->rangeIteratorPool[i]);
+        melMarkGreyGC(vm, gc, gc->rangeIteratorPool[i]);
     }
+
+    melM_gcLog(" --- Range iterator marked\n");
 }
 
 static void melDoMinorCollection(VM* vm, GC* gc)
 {
-    melM_gcLog("Starting minor phase\n");
+    melM_gcLog(" ------- Starting minor phase " MELON_PRINTF_SIZE "\n", gc->globalStats.totalSamples);
 
     melStatsStartCycle(vm, gc);
 
@@ -487,7 +515,7 @@ static void melDoMinorCollection(VM* vm, GC* gc)
 
     if (gc->whitesCount >= gc->nextMajorTriggerSize)
     {
-        melM_gcLog("Processing %lld items still left in the nursery\n", gc->nurserySize);
+        melM_gcLog("Processing " MELON_PRINTF_INT " items still left in the nursery\n", gc->nurserySize);
 
         // Some objects may be still in the nursery.
         // We need to promote them so that they can be
@@ -502,7 +530,7 @@ static void melDoMinorCollection(VM* vm, GC* gc)
         }
 
         melM_gcLog(
-            "Whites count %ld >= %ld: starting major collection\n",
+            " ------- Whites count %ld >= %ld: starting major collection\n",
             gc->whitesCount, 
             gc->nextMajorTriggerSize
         );
@@ -513,7 +541,7 @@ static void melDoMinorCollection(VM* vm, GC* gc)
     else
     {
         melM_gcLog(
-            "Minor collection terminated (whites count = %ld)\n", 
+            " ------- Minor collection terminated (whites count = %ld)\n", 
             gc->whitesCount
         );
 
@@ -533,7 +561,12 @@ static void melDoMarkIteration(VM* vm, GC* gc)
 
     melMarkRoots(vm, gc);
 
-    melM_gcLog("Marking step: grey = %lld, white = %lld\n", gc->greyStackSize, gc->whitesCount);
+    melM_gcLog(
+        " ------- Marking step " MELON_PRINTF_INT ": grey = " MELON_PRINTF_INT ", white = " MELON_PRINTF_INT "\n",
+        gc->globalStats.totalSamples, 
+        gc->greyStackSize, 
+        gc->whitesCount
+    );
 
     melProcessGreyStack(
         vm, 
@@ -549,7 +582,7 @@ static void melDoMarkIteration(VM* vm, GC* gc)
     {
         gc->phase = MELON_GC_SWEEP_PHASE;
 
-        melM_gcLog("Marking completed: white objects = %llu\n", gc->whitesCount);
+        melM_gcLog("Marking completed: white objects = " MELON_PRINTF_SIZE "\n", gc->whitesCount);
 
         if (gc->whitesCount == 0)
         {
@@ -576,7 +609,7 @@ static void melDoSweepIteration(VM* vm, GC* gc)
     GCItem* curItem = gc->whitesList;
     GCItem* prevItem = NULL;
 
-    melM_gcLog("Sweeping %llu white objects\n", gc->whitesCount);
+    melM_gcLog(" ------- Sweeping " MELON_PRINTF_SIZE " white objects\n", gc->whitesCount);
 
     while (curItem != NULL)
     {
@@ -622,7 +655,12 @@ TRet melTriggerGC(VM* vm, GC* gc)
         return 0;
     }
 
-    melM_gcLog("Triggering GC: allocated %lu bytes\n", gc->usedBytes);
+    melM_gcLog(" ------ Triggering GC: allocated " MELON_PRINTF_SIZE " bytes\n", gc->usedBytes);
+
+#ifdef _DEBUG_GC
+    melPrintVMCurrentLocation(vm);
+    melPrintNativeStackUtils();
+#endif
 
     if (gc->phase == MELON_GC_STOPPED_PHASE)
     {
@@ -705,22 +743,31 @@ TRet melRemoveRootGC(VM* vm, GC* gc, GCItem* item)
     return 1;
 }
 
-TRet melMarkGreyGC(GC* gc, GCItem* item)
+TRet melMarkGreyGC(VM* vm, GC* gc, GCItem* item)
 {
     assert(item->type > MELON_TYPE_NONE && item->type <= MELON_TYPE_MAX_ID);
+
+    melM_gcLog(
+        "Visiting %p for grey %s marking\n",
+        item,
+        gc->phase == MELON_GC_MARK_PHASE ? "major" : "minor"
+    );
 
     // Don't follow young -> old references in minor collections
     if (gc->phase == MELON_GC_MINOR_PHASE && melM_isOldGCItem(gc, item))
     {
+        melM_gcLog("Skipping %p grey marking, old item and minor collection.\n", item);
         return 0;
     }
 
     if (melM_isDarkGCItem(gc, item))
     {
+        melM_gcLog("Skipping %p grey marking, item is already dark.\n", item);
         return 0;
     }
 
-    melM_gcLog(
+    melM_gcLogObj(
+        vm, item,
         "Marking %s grey: %p\n", 
         gc->phase == MELON_GC_MARK_PHASE ? "major" : "minor", 
         item
@@ -754,7 +801,7 @@ static TRet melVisitMarkGreyGC(VM* vm, void* vgc, GCItem* item, TSize depth)
     assert(vgc != NULL);
     GC* gc = (GC*)vgc;
 
-    melMarkGreyGC(gc, item);
+    melMarkGreyGC(vm, gc, item);
 
     return depth;
 }
@@ -765,6 +812,19 @@ TRet melMarkBlackGC(VM* vm, GC* gc, GCItem* item)
     {
         return 1;
     }
+
+    melM_gcLog("melMarkBlackGC(%p)\n", item);
+
+#ifdef _TRACK_ALLOCATIONS_GC
+    if (item == vm->global)
+    {
+        melM_gcLog("Marking Global object black\n");
+    }
+    else
+    {
+        melPrintGCItemUtils(vm, item);
+    }
+#endif
 
     melM_gcStatsUpdate({
         stat->scanned++;
@@ -787,7 +847,7 @@ TRet melMarkBlackGC(VM* vm, GC* gc, GCItem* item)
     return 0;
 }
 
-TRet melMarkGreyValueGC(GC* gc, Value* item)
+TRet melMarkGreyValueGC(VM* vm, GC* gc, Value* item)
 {    
     assert(item != NULL);
     assert(item->type > MELON_TYPE_NONE && item->type <= MELON_TYPE_MAX_ID);
@@ -797,7 +857,7 @@ TRet melMarkGreyValueGC(GC* gc, Value* item)
         return 0;
     }
 
-    return melMarkGreyGC(gc, item->pack.obj);
+    return melMarkGreyGC(vm, gc, item->pack.obj);
 }
 
 TRet melMarkBlackValueGC(VM* vm, GC* gc, Value* item)
@@ -1017,7 +1077,7 @@ TRet melWriteBarrierGC(VM* vm, GCItem* obj, GCItem* value)
 {
     if (melM_gcIsRunning(&vm->gc) && melM_isBlackGCItem(&vm->gc, obj))
     {
-        melMarkGreyGC(&vm->gc, value);
+        melMarkGreyGC(vm, &vm->gc, value);
     }
     else if (
         !melM_gcIsMajorCollecting(&vm->gc)

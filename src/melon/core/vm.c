@@ -191,7 +191,12 @@ const TByte MAGIC_BYTES[] = {
     0x4d, 0x45, 0x4c, 0x4f, 0x4e
 };
 
+#ifdef MELON_64BIT
 const TInteger INT_CHECK_VALUE = 0x99AABBCCDDEEFF;
+#else
+const TInteger INT_CHECK_VALUE = 0x99AABBCC;
+#endif
+
 const TNumber  NUM_CHECK_VALUE = -2045.123;
 
 const char* MELON_TYPES_NAMES[] = {
@@ -241,7 +246,7 @@ static TRet melStepOutOfFunction(VM* vm);
 static TRet melReturnFunction(VM* vm, TUint32 valuesCount);
 
 static Upvalue* melGetOrAddUpvalueVM(VM* vm, Value* value);
-static TRet melCloseUpvaluesVM(VM* vm, Value* upToValue);
+static TRet melCloseUpvaluesVM(VM* vm, GCItem* owner, Value* upToValue);
 
 static Value* getValueFromGlobal(VM* vm, Value* key);
 static TByte melPushIndexedIterator(VM* vm, TType type, NativeIteratorNext nextFunc);
@@ -414,13 +419,13 @@ static void opConcat(VM* vm)
     melM_vstackPushPop(vm, &val, 2);
 }
 
-static void opJmp(VM* vm, Instruction* i, TUint64* pc)
+static void opJmp(VM* vm, Instruction* i, TSize* pc)
 {
     TVMInstSK offset = melM_op_geta25s(i->inst);
     *pc += offset;
 }
 
-static void opTestTrue(VM* vm, Instruction* i, TUint64* pc)
+static void opTestTrue(VM* vm, Instruction* i, TSize* pc)
 {
     TVMInstK popValue = melM_op_geta25(i->inst);
     Value* v = melPeekStackOfType(vm, MELON_TYPE_BOOL, 0);
@@ -429,7 +434,7 @@ static void opTestTrue(VM* vm, Instruction* i, TUint64* pc)
     vm->stack.top -= popValue;
 }
 
-static void opTestFalse(VM* vm, Instruction* i, TUint64* pc)
+static void opTestFalse(VM* vm, Instruction* i, TSize* pc)
 {
     TVMInstK popValue = melM_op_geta25(i->inst);
     Value* v = melPeekStackOfType(vm, MELON_TYPE_BOOL, 0);
@@ -871,7 +876,7 @@ static void opPushArray(VM* vm)
     melM_stackPopCount(&vm->stack, 2);
 }
 
-static enum SliceType
+enum SliceType
 {
     SLICE_COPY,
     SLICE_START,
@@ -879,65 +884,109 @@ static enum SliceType
     SLICE_START_END
 };
 
-static void opSlice(VM* vm, Instruction* i)
+static void opSliceType(
+    VM* vm, 
+    enum SliceType type, 
+    TType slicedType,
+    GCItem*(*slicer)(VM*, GCItem*, TInteger*, TInteger*)
+)
 {
-    TInt32 index = melM_op_geta25(i->inst);
-    
-    switch(index)
+    switch(type)
     {
         case SLICE_COPY:
             {
-                Value* arr = melPeekStackOfType(vm, MELON_TYPE_ARRAY, 0);
-                GCItem* newArr = melNewArrayFromArray(vm, arr->pack.obj, NULL, NULL);
-                assert(newArr != NULL);
+                Value* v = melPeekStackOfType(vm, slicedType, 0);
+                GCItem* newV = slicer(vm, v->pack.obj, NULL, NULL);
+                assert(newV != NULL);
 
                 melM_stackPopCount(&vm->stack, 1);
-                melM_vstackPushGCItem(&vm->stack, newArr);
+                melM_vstackPushGCItem(&vm->stack, newV);
             }
             break;
 
         case SLICE_START:
             {
-                Value* arr = melPeekStackOfType(vm, MELON_TYPE_ARRAY, 1);
+                Value* v = melPeekStackOfType(vm, slicedType, 1);
                 Value* start = melPeekStackOfType(vm, MELON_TYPE_INTEGER, 0);
 
-                GCItem* newArr = melNewArrayFromArray(vm, arr->pack.obj, &start->pack.value.integer, NULL);
-                assert(newArr != NULL);
+                GCItem* newV = slicer(vm, v->pack.obj, &start->pack.value.integer, NULL);
+                assert(newV != NULL);
 
                 melM_stackPopCount(&vm->stack, 2);
-                melM_vstackPushGCItem(&vm->stack, newArr);
+                melM_vstackPushGCItem(&vm->stack, newV);
             }
             break;
 
         case SLICE_END:
             {
-                Value* arr = melPeekStackOfType(vm, MELON_TYPE_ARRAY, 1);
+                Value* v = melPeekStackOfType(vm, slicedType, 1);
                 Value* end = melPeekStackOfType(vm, MELON_TYPE_INTEGER, 0);
 
-                GCItem* newArr = melNewArrayFromArray(vm, arr->pack.obj, NULL, &end->pack.value.integer);
-                assert(newArr != NULL);
+                GCItem* newV = slicer(vm, v->pack.obj, NULL, &end->pack.value.integer);
+                assert(newV != NULL);
 
                 melM_stackPopCount(&vm->stack, 2);
-                melM_vstackPushGCItem(&vm->stack, newArr);
+                melM_vstackPushGCItem(&vm->stack, newV);
             }
             break;
 
         case SLICE_START_END:
             {
-                Value* arr = melPeekStackOfType(vm, MELON_TYPE_ARRAY, 2);
+                Value* v = melPeekStackOfType(vm, slicedType, 2);
                 Value* start = melPeekStackOfType(vm, MELON_TYPE_INTEGER, 1);
                 Value* end = melPeekStackOfType(vm, MELON_TYPE_INTEGER, 0);
 
-                GCItem* newArr = melNewArrayFromArray(vm, arr->pack.obj, &start->pack.value.integer, &end->pack.value.integer);
-                assert(newArr != NULL);
+                GCItem* newV = slicer(vm, v->pack.obj, &start->pack.value.integer, &end->pack.value.integer);
+                assert(newV != NULL);
 
                 melM_stackPopCount(&vm->stack, 3);
-                melM_vstackPushGCItem(&vm->stack, newArr);
+                melM_vstackPushGCItem(&vm->stack, newV);
             }
             break;
 
         default:
             melM_fatal(vm, "Invalid slice operation");
+            break;
+    }
+}
+
+static void opSlice(VM* vm, Instruction* i)
+{
+    TInt32 index = melM_op_geta25(i->inst);
+    TType type = MELON_TYPE_NONE;
+
+    switch(index)
+    {
+        case SLICE_COPY:
+           type = melPeekStackType(vm, 0);
+           break;
+
+        case SLICE_START:
+        case SLICE_END:
+            type = melPeekStackType(vm, 1);
+            break;
+
+        case SLICE_START_END:
+            type = melPeekStackType(vm, 2);
+            break; 
+        
+        default:
+            melM_fatal(vm, "Invalid slice operation");
+            break;
+    }
+    
+    switch(type)
+    {
+        case MELON_TYPE_STRING:
+            opSliceType(vm, index, MELON_TYPE_STRING, melNewStringFromString);
+            break;
+
+        case MELON_TYPE_ARRAY:
+            opSliceType(vm, index, MELON_TYPE_ARRAY, melNewArrayFromArray);
+            break;
+
+        default:
+            melM_fatal(vm, "Can't slice a value of type '%s'", MELON_TYPES_NAMES[type]);
             break;
     }
 }
@@ -1137,6 +1186,8 @@ static void opStoreUpval(VM* vm, Instruction* i)
     StackEntry* se = melM_stackOffset(&vm->stack, 0);
     Upvalue** upvalues = melM_closureUpvaluesFromObj(cf->closure);
     *(upvalues[upvalNum]->value) = *se;
+
+    melWriteBarrierValueGC(vm, cf->closure, se);
 
     melM_stackPop(&vm->stack);
 }
@@ -1541,7 +1592,7 @@ static TRet melGenerateHashKey(VM* vm)
 
     for (TByte i = 0; i < MELON_VM_SIPHASH_KEY_SIZE; i++)
     {
-        vm->hashKey[i] = random() % 256;
+        vm->hashKey[i] = rand() % 256;
     }
 
     return 0;
@@ -1966,6 +2017,13 @@ static Upvalue* melAddUpvalue(VM* vm, Value* value)
     vm->gc.usedBytes += sizeof(Upvalue);
     vm->gc.whitesCount++;
 
+#ifdef _DEBUG_GC
+    if (melM_isGCItem(value))
+    {
+        printf("Creating upvalue for item: %p\n", value->pack.obj);
+    }
+#endif
+
     return uv;
 }
 
@@ -1973,6 +2031,10 @@ static TRet melFreeUpvalue(VM* vm, Upvalue* uv)
 {
 #ifdef _ZERO_MEMORY_ON_FREE_GC
     memset(uv, 0, sizeof(Upvalue));
+#endif
+
+#ifdef _TRACK_ALLOCATIONS_GC
+    printf("Freeing upvalue %p", uv);
 #endif
 
     free(uv);
@@ -2036,7 +2098,7 @@ Upvalue* melGetOrAddUpvalueVM(VM* vm, Value* value)
     return uv;
 }
 
-TRet melCloseUpvaluesVM(VM* vm, Value* upToValue)
+TRet melCloseUpvaluesVM(VM* vm, GCItem* owner, Value* upToValue)
 {
     Upvalue* curUv = NULL;
 
@@ -2046,6 +2108,8 @@ TRet melCloseUpvaluesVM(VM* vm, Value* upToValue)
         
         curUv->closed = *curUv->value;
         curUv->value = &curUv->closed;
+
+        melWriteBarrierValueGC(vm, owner, curUv->value);
 
         vm->openUpvalues = curUv->next;
 
@@ -2302,7 +2366,11 @@ static TRet melReturnFunction(VM* vm, TUint32 valuesCount)
 
     if (vm->openUpvalues != NULL)
     {
-        melCloseUpvaluesVM(vm, melM_stackGet(&vm->stack, cf->stackStart - 1));
+        melCloseUpvaluesVM(
+            vm, 
+            melM_functionToObj(cf->function), 
+            melM_stackGet(&vm->stack, cf->stackStart - 1)
+        );
     }
 
     assert(cf->stackStart > 0);
@@ -2325,7 +2393,7 @@ static TRet melReturnFunction(VM* vm, TUint32 valuesCount)
         {
             StackEntry* retStart = &vm->stack.stack[vm->stack.top - valuesCount];
             StackEntry* newRetStart = &vm->stack.stack[cf->stackStart - 1];
-            memcpy(newRetStart, retStart, sizeof(StackEntry) * valuesCount);
+            memmove(newRetStart, retStart, sizeof(StackEntry) * valuesCount);
         }
     }
     else if (cf->expRet == 1)
@@ -2767,11 +2835,11 @@ void melErrorVM(VM* vm, const char *format, ...)
 {
     // This can be NULL if an error has been raised
     // before the VM even run (eg: deserialization)
-    CallFrame* cf = melGetTopCallFrameVM(vm);
+    CallFrame* cf = melM_stackIsEmpty(&vm->callStack) ? NULL : melGetTopCallFrameVM(vm);
 
     // If the function is native we do not have debug informations
     // so we are simply falling back to the function call itself
-    if (cf != NULL && cf->function->native)
+    if (cf != NULL && cf->function != NULL && cf->function->native)
     {
         // Maybe this native functionw as invoked directly by code
         if (vm->callStack.top > 1)

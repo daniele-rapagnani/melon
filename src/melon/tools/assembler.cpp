@@ -19,7 +19,7 @@ extern "C" {
 
 namespace melon {
 
-enum class TokenType
+enum class MelTokenType
 {
     NONE,
     INTEGER,
@@ -36,11 +36,11 @@ struct Token
 {
     Token() = default;
 
-    Token(TokenType type, uint32_t col, uint64_t line, const std::string& value)
+    Token(MelTokenType type, uint32_t col, uint64_t line, const std::string& value)
         : type(type), col(col), line(line), value(value)
     { }
 
-    TokenType type = TokenType::NONE;
+    MelTokenType type = MelTokenType::NONE;
     uint32_t col = 0;
     uint64_t line = 0;
     std::string value;
@@ -202,7 +202,7 @@ public:
             return c;
         };
 
-        auto pushToken = [this, &token] (TokenType type) mutable {
+        auto pushToken = [this, &token] (MelTokenType type) mutable {
             this->tokens.push_back(Token{
                 type,
                 this->col,
@@ -226,7 +226,7 @@ public:
             {
                 if (!token.empty())
                 {
-                    pushToken(TokenType::SYMBOL);
+                    pushToken(MelTokenType::SYMBOL);
                 }
 
                 consumeWS();
@@ -271,7 +271,7 @@ public:
                     return false;
                 }
 
-                pushToken(TokenType::STRING);
+                pushToken(MelTokenType::STRING);
             }
             else if (
                 (((c == '.' || c == '-' || c == '+') && std::isdigit(peek()))
@@ -298,27 +298,27 @@ public:
                     token += get();
                 }
 
-                pushToken(foundDot ? TokenType::NUMBER : TokenType::INTEGER);
+                pushToken(foundDot ? MelTokenType::NUMBER : MelTokenType::INTEGER);
             }
             else if (c == '@')
             {
                 token = "@";
-                pushToken(TokenType::AT);
+                pushToken(MelTokenType::AT);
             }
             else if (c == ':')
             {
                 token = ":";
-                pushToken(TokenType::COLON);
+                pushToken(MelTokenType::COLON);
             }
             else if (c == '.')
             {
                 token = ".";
-                pushToken(TokenType::DOT);
+                pushToken(MelTokenType::DOT);
             }
             else if (c == '+')
             {
                 token = "+";
-                pushToken(TokenType::PLUS);
+                pushToken(MelTokenType::PLUS);
             }
             else if (std::isalnum(c) || c == '_')
             {
@@ -336,7 +336,7 @@ public:
 
         if (!token.empty())
         {
-            pushToken(TokenType::SYMBOL);
+            pushToken(MelTokenType::SYMBOL);
         }
 
         infile.close();
@@ -354,7 +354,7 @@ public:
         return &this->tokens[curToken + offset];
     }
 
-    Token* consumeToken(TokenType type) 
+    Token* consumeToken(MelTokenType type) 
     {
         Token* token = peekToken();
 
@@ -367,7 +367,7 @@ public:
             return nullptr;
         }
 
-        if (type != TokenType::NONE && token->type != type)
+        if (type != MelTokenType::NONE && token->type != type)
         {
             std::stringstream ss;
             ss << "Got unexpected token " << static_cast<int>(token->type) << " (" << token->value << "), expected: " << static_cast<int>(type);
@@ -386,28 +386,28 @@ public:
         Token* tok = peekToken();
         Token* tokSym = peekToken(1);
 
-        if (!tok || tok->type != TokenType::DOT || !tokSym || tokSym->type != TokenType::SYMBOL || tokSym->value != "data")
+        if (!tok || tok->type != MelTokenType::DOT || !tokSym || tokSym->type != MelTokenType::SYMBOL || tokSym->value != "data")
         {
             return true;
         }
 
-        consumeToken(TokenType::DOT);
-        consumeToken(TokenType::SYMBOL);
+        consumeToken(MelTokenType::DOT);
+        consumeToken(MelTokenType::SYMBOL);
 
         while(peekToken())
         {
-            if (peekToken()->type != TokenType::SYMBOL)
+            if (peekToken()->type != MelTokenType::SYMBOL)
             {
                 break;
             }
 
-            Token* tok = consumeToken(TokenType::SYMBOL);
-            Token* value = consumeToken(TokenType::NONE);
+            Token* tok = consumeToken(MelTokenType::SYMBOL);
+            Token* value = consumeToken(MelTokenType::NONE);
 
             if (
-                value->type != TokenType::INTEGER
-                &&  value->type != TokenType::NUMBER
-                &&  value->type != TokenType::STRING
+                value->type != MelTokenType::INTEGER
+                &&  value->type != MelTokenType::NUMBER
+                &&  value->type != MelTokenType::STRING
             )
             {
                 error("Unexpected token, expected a constant value, got: " + value->value);
@@ -427,7 +427,7 @@ public:
 
     bool compilePushK(FunctionContext& fc)
     {
-        Token* tok = consumeToken(TokenType::SYMBOL);
+        Token* tok = consumeToken(MelTokenType::SYMBOL);
 
         if (!tok)
         {
@@ -448,7 +448,7 @@ public:
 
     bool compileSingleSignedArg(TVMOpcode op)
     {
-        Token* tok = consumeToken(TokenType::INTEGER);
+        Token* tok = consumeToken(MelTokenType::INTEGER);
 
         if (!tok)
         {
@@ -461,7 +461,7 @@ public:
 
     bool compileSingleArg(TVMOpcode op)
     {
-        Token* tok = consumeToken(TokenType::INTEGER);
+        Token* tok = consumeToken(MelTokenType::INTEGER);
 
         if (!tok)
         {
@@ -474,7 +474,7 @@ public:
 
     bool compileTwoArgs(TVMOpcode op)
     {
-        Token* tokA = consumeToken(TokenType::INTEGER);
+        Token* tokA = consumeToken(MelTokenType::INTEGER);
 
         if (!tokA)
         {
@@ -482,7 +482,7 @@ public:
             return false;
         }
 
-        Token* tokB = consumeToken(TokenType::INTEGER);
+        Token* tokB = consumeToken(MelTokenType::INTEGER);
 
         if (!tokB)
         {
@@ -500,7 +500,7 @@ public:
 
     bool compileNewCl(FunctionContext& fc)
     {
-        Token* tokFunc = consumeToken(TokenType::SYMBOL);
+        Token* tokFunc = consumeToken(MelTokenType::SYMBOL);
 
         if (!tokFunc)
         {
@@ -529,7 +529,7 @@ public:
 
     bool compileCall(FunctionContext& fc, bool tail = false)
     {
-        Token* tokArgs = consumeToken(TokenType::INTEGER);
+        Token* tokArgs = consumeToken(MelTokenType::INTEGER);
 
         if (!tokArgs)
         {
@@ -537,7 +537,7 @@ public:
             return false;
         }
 
-        Token* tokExpected = consumeToken(TokenType::INTEGER);
+        Token* tokExpected = consumeToken(MelTokenType::INTEGER);
 
         if (!tokExpected)
         {
@@ -560,7 +560,7 @@ public:
 
     bool addJmp(FunctionContext& fc)
     {
-        Token* tok = consumeToken(TokenType::SYMBOL);
+        Token* tok = consumeToken(MelTokenType::SYMBOL);
 
         if (!tok)
         {
@@ -580,13 +580,13 @@ public:
 
     bool consumeUpvalues(FunctionContext& fc)
     {
-        if (peekToken()->type != TokenType::PLUS)
+        if (peekToken()->type != MelTokenType::PLUS)
         {
             return true;
         }
 
-        consumeToken(TokenType::PLUS);
-        Token* tok = consumeToken(TokenType::SYMBOL);
+        consumeToken(MelTokenType::PLUS);
+        Token* tok = consumeToken(MelTokenType::SYMBOL);
 
         if (!tok || tok->value != "upvalue")
         {
@@ -594,7 +594,7 @@ public:
             return false;
         }
 
-        tok = consumeToken(TokenType::SYMBOL);
+        tok = consumeToken(MelTokenType::SYMBOL);
 
         if (!tok || (tok->value != "stack" && tok->value != "parent"))
         {
@@ -605,7 +605,7 @@ public:
         UpvalueInfo ui;
         ui.instack = tok->value == "stack" ? 1 : 0;
 
-        tok = consumeToken(TokenType::INTEGER);
+        tok = consumeToken(MelTokenType::INTEGER);
 
         if (!tok)
         {
@@ -622,8 +622,8 @@ public:
 
     bool consumeFunctionSection(FunctionContext& parentFc)
     {
-        consumeToken(TokenType::AT);
-        Token* tok = consumeToken(TokenType::SYMBOL);
+        consumeToken(MelTokenType::AT);
+        Token* tok = consumeToken(MelTokenType::SYMBOL);
 
         if (!tok || tok->value != "function")
         {
@@ -631,16 +631,16 @@ public:
             return false;
         }
 
-        tok = consumeToken(TokenType::SYMBOL);
+        tok = consumeToken(MelTokenType::SYMBOL);
         std::string funcLabel = tok->value;
 
         FunctionContext& fc = parentFc.addNewFunction(&this->vm, funcLabel);
         fc.funcLabel = funcLabel;
         
-        tok = consumeToken(TokenType::INTEGER);
+        tok = consumeToken(MelTokenType::INTEGER);
         TInteger args = atoi(tok->value.c_str());
 
-        tok = consumeToken(TokenType::INTEGER);
+        tok = consumeToken(MelTokenType::INTEGER);
         TInteger localsSlots = atoi(tok->value.c_str());
 
         Function* fn = melM_functionFromObj(fc.func);
@@ -651,8 +651,8 @@ public:
 
         while (
             peekToken() && 
-            peekToken()->type == TokenType::PLUS &&
-            peekToken(1)->type == TokenType::SYMBOL &&
+            peekToken()->type == MelTokenType::PLUS &&
+            peekToken(1)->type == MelTokenType::SYMBOL &&
             peekToken(1)->value == "upvalue"
         )
         {
@@ -667,8 +667,8 @@ public:
             return false;
         }
 
-        consumeToken(TokenType::AT);
-        Token* endTok = consumeToken(TokenType::SYMBOL);
+        consumeToken(MelTokenType::AT);
+        Token* endTok = consumeToken(MelTokenType::SYMBOL);
 
         if (!endTok || endTok->value != "end")
         {
@@ -692,8 +692,8 @@ public:
     {
         while (
             peekToken() && 
-            peekToken()->type == TokenType::AT &&
-            peekToken(1)->type == TokenType::SYMBOL &&
+            peekToken()->type == MelTokenType::AT &&
+            peekToken(1)->type == MelTokenType::SYMBOL &&
             peekToken(1)->value == "function"
         )
         {
@@ -717,16 +717,16 @@ public:
 
         if (
             peekToken() && 
-            peekToken()->type == TokenType::AT &&
+            peekToken()->type == MelTokenType::AT &&
             peekToken(1) &&
-            peekToken(1)->type == TokenType::SYMBOL &&
+            peekToken(1)->type == MelTokenType::SYMBOL &&
             peekToken(1)->value == "main"
         )
         {
-            consumeToken(TokenType::AT);
-            consumeToken(TokenType::SYMBOL);
+            consumeToken(MelTokenType::AT);
+            consumeToken(MelTokenType::SYMBOL);
 
-            Token* tok = consumeToken(TokenType::INTEGER);
+            Token* tok = consumeToken(MelTokenType::INTEGER);
             TInteger localsSlots = atoi(tok->value.c_str());
 
             melM_functionFromObj(this->main.func)->localsSlots = localsSlots;
@@ -751,17 +751,17 @@ public:
 
             switch(c.value.type)
             {
-                case TokenType::STRING:
+                case MelTokenType::STRING:
                     v->type = MELON_TYPE_STRING;
                     v->pack.obj = melNewString(&this->vm, c.value.value.c_str(), c.value.value.size());
                     break;
 
-                case TokenType::NUMBER:
+                case MelTokenType::NUMBER:
                     v->type = MELON_TYPE_NUMBER;
                     v->pack.value.number = strtonum(c.value.value.c_str());
                     break;
 
-                case TokenType::INTEGER:
+                case MelTokenType::INTEGER:
                     v->type = MELON_TYPE_INTEGER;
                     v->pack.value.integer = atoi(c.value.value.c_str());
                     break;
@@ -798,8 +798,8 @@ public:
 
     bool consumeTextSection(FunctionContext& fc)
     {
-        consumeToken(TokenType::DOT);
-        Token* tok = consumeToken(TokenType::SYMBOL);
+        consumeToken(MelTokenType::DOT);
+        Token* tok = consumeToken(MelTokenType::SYMBOL);
 
         if (!tok || tok->value != "text")
         {
@@ -809,20 +809,20 @@ public:
 
         while(peekToken())
         {
-            if (peekToken()->type == TokenType::COLON)
+            if (peekToken()->type == MelTokenType::COLON)
             {                
-                consumeToken(TokenType::COLON);
-                Token* tok = consumeToken(TokenType::SYMBOL);
+                consumeToken(MelTokenType::COLON);
+                Token* tok = consumeToken(MelTokenType::SYMBOL);
                 fc.labels[tok->value] = this->curBuffer;
                 continue;
             }
 
-            if (peekToken()->type != TokenType::SYMBOL)
+            if (peekToken()->type != MelTokenType::SYMBOL)
             {
                 break;
             }
 
-            Token* tok = consumeToken(TokenType::SYMBOL);
+            Token* tok = consumeToken(MelTokenType::SYMBOL);
 
             if (tok->value == "NOP")
             {
@@ -1165,7 +1165,7 @@ private:
     Serializer codeSerializer;
 
     std::vector<TByte> buffer;
-    TUint64 curBuffer = 0; 
+    TSize curBuffer = 0; 
 
     std::ofstream outFileStr;
 

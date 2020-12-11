@@ -62,6 +62,7 @@ testTrim("");
 testTrim("     ");
 testTrim("          ");
 testTrim("          asdasd                  ");
+testTrim("asdasd");
 
 io.print(string.format("Hello World"));
 io.print(string.format("Hello %s", "World"));
@@ -74,3 +75,39 @@ io.print(string.format("Hex: %X", 10));
 io.print(string.format("Padded number: %015d", 10));
 io.print(string.format("Float precision: %.2f", 1.12345));
 io.print(string.format("Padded float: %015.2f", math.pi));
+
+io.print(("asd")[-1:]);
+io.print(("asd")[:0]);
+io.print(("asd")[:2]);
+io.print(("asd")[-2:2]);
+
+let testSplit = |arr, sep| => {
+    let s = "";
+
+    if (types.isArray(arr)) {
+        for (let i in arr) {
+            s = s .. sep .. i;
+        }
+
+        s = s[#sep:];
+    } else {
+        s = arr;
+    }
+
+    io.print(s);
+    io.print(json.stringify(string.split(s, sep)));
+};
+
+testSplit(["a", "b", "c"], ".");
+testSplit(["abcd", "abcde", "abcdefgh", "abcdefghijk"], ".");
+testSplit(["."], ".");
+testSplit("", ".");
+testSplit([".", "."], ".");
+testSplit([".", ".abc", "."], ".");
+testSplit([".", ".abc", "."], ".");
+testSplit("abc", ".");
+testSplit(".abc.", ".");
+testSplit(["a", "@b", "@c", "@d"], "@.");
+testSplit(["a", "@b", "@c", "@d"], "@@");
+testSplit(["a", "@b", "@c", "@d"], "@");
+testSplit(["a", "b", "c", "d"], "jklh");
