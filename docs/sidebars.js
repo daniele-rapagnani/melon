@@ -13,12 +13,14 @@ module.exports = {
               "string",
               "array",
               "object",
+              "function",
               "range",
               "symbol",
               "iterator",
               "null"
             ]
-          }
+          },
+          "control-structures"
         ]
       }
     ],

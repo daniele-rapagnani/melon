@@ -179,7 +179,7 @@ This mechanism can be used to do OOP, specifically [prototype based programming]
 
 ## Method access operator
 
-As we know, an `Object` can contain a [`Closure`](closure.md) as one of its values. Most OOP languages provide the concept of a *method*, which is a function which is invoked on an object and is able to alter its internal state by using a reference to the object on which it's invoked.
+As we know, an `Object` can contain a [`Function`](function.md) as one of its values. Most OOP languages provide the concept of a *method*, which is a function which is invoked on an object and is able to alter its internal state by using a reference to the object on which it's invoked.
 In melon we can achieve a similar result with:
 
 ```js
@@ -221,7 +221,7 @@ io.print(myObj.state); // 11
 
 Basically the **method access** `->` operator silently passes the object on which it is being used as the first parameter of the closure you are accessing with it.
 
-See also [`Closure`](closure.md) for a better understanding of the `this` keyword and of `->` vs `=>` when creating closures.
+See also [`Function`](function.md) for a better understanding of the `this` keyword and of `->` vs `=>` when creating closures.
 
 ## Further object manipulation
 
