@@ -689,7 +689,7 @@ static TRet melCompileLiteral(Compiler* c)
             memcpy(&numBuffer, t->start, t->len);
             numBuffer[t->len] = '\0';
 
-            pushNumberConstant(c, strtonum(numBuffer));
+            pushNumberConstant(c, melM_strtonum(numBuffer));
             melAdvanceLexer(&c->lexer);
         }
             break;
