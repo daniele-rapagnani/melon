@@ -5,6 +5,12 @@
 #include "melon/core/array.h"
 #include "melon/libs/cJSON/cJSON.h"
 
+/***
+ * @module
+ * 
+ * This module provides built-in JSON serialization/deserialization support.
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -164,7 +170,15 @@ static TRet parseString(VM* vm, const Value* str)
     return 1;
 }
 
-TByte parseFileFunc(VM* vm)
+/***
+ * Reads and parses the provided JSON file.
+ * 
+ * @arg jsonPath A valid path to a readable file
+ * 
+ * @returns The deserialized JSON or `null` if parsing failed.
+ */
+
+static TByte parseFileFunc(VM* vm)
 {
     melM_arg(vm, jsonFile, MELON_TYPE_STRING, 0);
 
@@ -209,13 +223,30 @@ TByte parseFileFunc(VM* vm)
     return parseString(vm, &contentResult);
 }
 
-TByte parseFunc(VM* vm)
+/***
+ * Deserializes a given JSON from a string
+ * 
+ * @arg jsonString A string representing a valid JSON
+ * 
+ * @returns The deserialized JSON or `null` if parsing failed.
+ */
+
+static TByte parseFunc(VM* vm)
 {
     melM_arg(vm, jsonString, MELON_TYPE_STRING, 0);
     return parseString(vm, jsonString);
 }
 
-TByte stringifyFunc(VM* vm)
+/***
+ * Serializes a given value to a JSON string.
+ * 
+ * @arg value The value that should be JSON serialized
+ * @arg prettify? `true` If the output should be prettified, defaults to `false`
+ * 
+ * @returns A JSON string representing `value` or `null` if serialization failed.
+ */
+
+static TByte stringifyFunc(VM* vm)
 {
     melM_arg(vm, value, MELON_TYPE_NONE, 0);
     melM_argOptional(vm, prettify, MELON_TYPE_BOOL, 1);

@@ -20,7 +20,12 @@ module.exports = {
               "null"
             ]
           },
-          "control-structures"
+          "control-structures",
+          "operators",
+          "modules",
+          {
+            "Core modules": require("./modules.json")
+          }
         ]
       }
     ],

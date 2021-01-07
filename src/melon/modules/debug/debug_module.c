@@ -5,7 +5,19 @@
 #include "melon/core/array.h"
 #include "melon/core/utils.h"
 
+/***
+ * @module
+ * 
+ * This module groups some debugging utility functions together. It can be
+ * used to inspect the VM or build more sophisticated debugging
+ * functionalities on top of it.
+ */
+
 #include <stdlib.h>
+
+/***
+ * Prints the current stack to `stdout`
+ */
 
 static TByte printStackFunc(VM* vm)
 {
@@ -13,11 +25,21 @@ static TByte printStackFunc(VM* vm)
     return 0;
 }
 
+/***
+ * Prints the current call stack to `stdout`
+ */
+
 static TByte printCallstackFunc(VM* vm)
 {
     melPrintCallStackUtils(vm);
     return 0;
 }
+
+/***
+ * Prints an error and aborts the program's execution.
+ * 
+ * @arg message The error message
+ */
 
 static TByte errorFunc(VM* vm)
 {
@@ -27,6 +49,13 @@ static TByte errorFunc(VM* vm)
     melM_fatal(vm, "%.*s\n", str->len, cstr);
     return 0;
 }
+
+/***
+ * This function returns an array of the function objects
+ * which are currently in the call stack.
+ * 
+ * @returns An array of functions, the top of the stack is at index `0`
+ */
 
 static TByte getCallstackFunc(VM* vm)
 {
@@ -49,6 +78,12 @@ static TByte getCallstackFunc(VM* vm)
 
     return 1;
 }
+
+/***
+ * Dumps a value to `stdout` using the internal dump function
+ * 
+ * @arg val The value to dump
+ */
 
 static TByte dumpFunc(VM* vm)
 {

@@ -10,6 +10,12 @@
 #include "melon/core/function.h"
 #include "melon/core/utils.h"
 
+/***
+ * @module
+ * 
+ * This module provides functions for basic string manipulation.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -202,12 +208,29 @@ TRet melToString(VM* vm, const Value* se)
     return 0;
 }
 
+/***
+ * Converts the provided value to its `String` representation.
+ * 
+ * @arg val The value to convert to string
+ * @returns The string representation of `val`
+ */
+
 static TByte toString(VM* vm)
 {
     Value* se = melGetLocalVM(vm, melGetTopCallFrameVM(vm), 0, 0);
     melToString(vm, se);
     return 1;
 }
+
+/***
+ * Returns an `Integer` representing the ASCII code of the
+ * character at index `idx` in `str`.
+ * 
+ * @arg str The subject string
+ * @arg idx The character's index
+ * 
+ * @returns An `Integer` or `null` if the index is out of range
+ */
 
 static TByte charCodeAt(VM* vm)
 {
@@ -232,6 +255,13 @@ static TByte charCodeAt(VM* vm)
     melM_stackPush(&vm->stack, &resultValue);
     return 1;
 }
+
+/***
+ * Creates a string from a list of ASCII codes.
+ * 
+ * @arg codes A single `Integer` or an `Array` of `Integer` values. Any non-`Integer` entry will be skipped.
+ * @returns A new string made up of the provided sequence of ASCII codes
+ */
 
 static TByte fromCharCodes(VM* vm)
 {
@@ -284,6 +314,16 @@ static TByte fromCharCodes(VM* vm)
     return 1;
 }
 
+/***
+ * Looks for any occurrence of `needle` in `haystack` starting from the `start` index.
+ * 
+ * @arg haystack The string in which to find the `needle`
+ * @arg needle The substring to search for
+ * @arg ?start The index at which the search should start, defaults to 0
+ * 
+ * @returns An `Integer` with the index in `haystack` at which the first character of `needle` was found. `null` if `needle` couldn't be found.
+ */
+
 static TByte find(VM* vm)
 {
     melM_arg(vm, haystack, MELON_TYPE_STRING, 0);
@@ -308,6 +348,19 @@ static TByte find(VM* vm)
 
     return 1;
 }
+
+/***
+ * Replaces with `replacement` any occurrence of `needle` found inside `haystack` between the
+ * `start` (inclusive) and `end` (exclusive) indices.
+ * 
+ * @arg haystack The string in which to find the `needle`
+ * @arg needle The substring to be replaced by `replacement`
+ * @arg replacement The string to replace any occurrence of `needle`
+ * @arg ?start The index of `haystack` at which the search should start, defaults to 0
+ * @arg ?end The index of `haystack` at which the search should end, defaults to the length of `haystack`
+ * 
+ * @returns A new string with `needle` replaced by `replacement` or the original `haystack` if `needle` was not found.
+ */
 
 static TByte replace(VM* vm)
 {
@@ -359,20 +412,50 @@ static TByte transform(VM* vm, int(*transformFunc)(int), TSize limit)
     return 1;
 }
 
+/***
+ * Transforms the provided string to lowercase.
+ * 
+ * @arg str The string to transform
+ * @returns The transformed string
+ */
+
 static TByte toLower(VM* vm)
 {
     return transform(vm, tolower, 0);
 }
+
+/***
+ * Transforms the provided string to uppercase.
+ * 
+ * @arg str The string to transform
+ * @returns The transformed string
+ */
 
 static TByte toUpper(VM* vm)
 {
     return transform(vm, toupper, 0);
 }
 
+/***
+ * Capitalizes the provided string, 
+ * only the first character is transformed to uppercase.
+ * 
+ * @arg str The string to transform
+ * @returns The transformed string
+ */
+
 static TByte toCapitalized(VM* vm)
 {
     return transform(vm, toupper, 1);
 }
+
+/***
+ * Trims a string removing any space character from 
+ * the beginning and end of a string.
+ * 
+ * @arg str The string to be trimmed
+ * @returns The trimmed string
+ */
 
 static TByte trim(VM* vm)
 {
@@ -423,6 +506,16 @@ static TByte trim(VM* vm)
     return 1;
 }
 
+/***
+ * Formats a string with [printf](http://www.cplusplus.com/reference/cstdio/printf/) style
+ * formatting.
+ * 
+ * @arg fmt The format to be used when formatting the string
+ * @arg args An array of the values required by the `fmt` string, it may be an empty array
+ * 
+ * @returns The values provided in `args` formatted using `fmt`
+ */
+
 static TByte format(VM* vm)
 {
     melM_arg(vm, fmt, MELON_TYPE_STRING, 0);
@@ -454,6 +547,15 @@ static void addSplitItem(VM* vm, GCItem* arr, const char* start, TSize len)
 
     melPushArray(vm, arr, &itemV);
 }
+
+/***
+ * Splits `str` using `token` as a delimiter.
+ * 
+ * @arg str The string to be splitted
+ * @arg token The substring to use as delimiter
+ * 
+ * @returns An array with the strings resulted from splitting `str` by `token`.
+ */
 
 static TByte split(VM* vm)
 {

@@ -2,6 +2,12 @@
 #include "melon/modules/fs/fs_os_api.h"
 #include "melon/modules/modules.h"
 
+/***
+ * @module
+ * 
+ * This module exposes functions for filesystem manipulation.
+ */
+
 #include <stdlib.h>
 #include <assert.h>
 
@@ -21,10 +27,59 @@
                                                   \
     }
 
+/***
+ * @function exists
+ * 
+ * Checks whether a given path exists on file system.
+ * 
+ * @arg path The path to check
+ * @returns `true` if the provided path exists, `false` otherwise
+ */
+
 wrapBoolFunction(melFsAPIPathExists);
+
+/***
+ * @function isFile
+ * 
+ * Checks whether a given path corresponds to a valid file on filesystem.
+ * 
+ * @arg path The path to check
+ * @returns `true` if the provided path is a file, `false` otherwise
+ */
+
 wrapBoolFunction(melFsAPIPathIsFile);
+
+/***
+ * @function isDirectory
+ * 
+ * Checks whether a given path corresponds to a directory on filesystem.
+ * 
+ * @arg path The path to check
+ * @returns `true` if the provided path is a directory, `false` otherwise
+ */
+
 wrapBoolFunction(melFsAPIPathIsDirectory);
+
+/***
+ * @function isReadable
+ * 
+ * Checks whether a given path is readable.
+ * 
+ * @arg path The path to check
+ * @returns `true` if the provided path is readable, `false` otherwise
+ */
+
 wrapBoolFunction(melFsAPIPathIsReadable);
+
+/***
+ * @function isWritable
+ * 
+ * Checks whether a given path is writable.
+ * 
+ * @arg path The path to check
+ * @returns `true` if the provided path is writable, `false` otherwise
+ */
+
 wrapBoolFunction(melFsAPIPathIsWritable);
 
 static const ModuleFunction funcs[] = {

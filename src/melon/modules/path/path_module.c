@@ -3,6 +3,13 @@
 #include "melon/core/utils.h"
 #include "melon/modules/modules.h"
 
+/***
+ * @module
+ * 
+ * This module can be used to manipulate `String` values that represent
+ * filesystem paths.
+ */
+
 #include <stdlib.h>
 
 static TByte wrapTransformFunc(VM* vm, TRet(*transformFunc)(VM*, const Value*, Value*))
@@ -20,17 +27,39 @@ static TByte wrapTransformFunc(VM* vm, TRet(*transformFunc)(VM*, const Value*, V
     return 1;
 }
 
-TByte dirnameFunc(VM* vm)
+/***
+ * Returns the last directory component of the provided path
+ * 
+ * @arg path The path from which the dirname will be extracted
+ * @returns The extracted directory component or `null` on error
+ */
+
+static TByte dirnameFunc(VM* vm)
 {
    return wrapTransformFunc(vm, melPathAPIDirname);
 }
 
-TByte basenameFunc(VM* vm)
+/***
+ * Returns the file component of the provided path
+ * 
+ * @arg path The path from which the basename will be extracted
+ * @returns The extracted file component or `null` on error
+ */
+
+static TByte basenameFunc(VM* vm)
 {
     return wrapTransformFunc(vm, melPathAPIBasename);
 }
 
-TByte realpathFunc(VM* vm)
+/***
+ * Resolves any relative components or symbolic links of a given path
+ * and returns the real absolute path.
+ * 
+ * @arg path The path to be transformed to a real absolute path
+ * @returns The real path or `null` on error
+ */
+
+static TByte realpathFunc(VM* vm)
 {
     return wrapTransformFunc(vm, melPathAPIRealpath);
 }

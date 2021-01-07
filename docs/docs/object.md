@@ -150,6 +150,10 @@ This technique is used extensively throughout melon's core and modules.
 One example is [operator overloading](operator_overlading.md).
 :::
 
+## Iterating over keys
+
+If you retrive the [`Iterator`](iterator.md) from an `Object` using the iterator operator `>`, you can use this iterator to iterate over the keys of an `Object`, for example in a [`for-in`](control_structures.md#for-in-loops) loop.
+
 ## Prototype
 
 `Objects` can be chained together by making one a prototype for the other. This is done using the **bless operator** `@`:
