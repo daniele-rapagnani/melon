@@ -758,7 +758,7 @@ public:
 
                 case MelTokenType::NUMBER:
                     v->type = MELON_TYPE_NUMBER;
-                    v->pack.value.number = strtonum(c.value.value.c_str());
+                    v->pack.value.number = melM_strtonum(c.value.value.c_str());
                     break;
 
                 case MelTokenType::INTEGER:

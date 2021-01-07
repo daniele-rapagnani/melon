@@ -64,6 +64,6 @@ typedef TUint64 TSymbolID;
 
 #define MELON_PRINTF_SIZE MELON_PRINTF_UINT
 
-#define strtonum(x) strtod(x, NULL)
+#define melM_strtonum(x) strtod(x, NULL)
 
 #endif // __melon__types_h__
