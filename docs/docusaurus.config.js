@@ -1,10 +1,10 @@
 module.exports = {
   title: 'melon',
   tagline: 'A modern embeddable programming language',
-  url: 'https://your-docusaurus-test-site.com',
-  baseUrl: '/',
+  url: 'https://daniele-rapagnani.github.io',
+  baseUrl: '/melon/',
   onBrokenLinks: 'throw',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.png',
   organizationName: 'daniele-rapagnani', // Usually your GitHub org/user name.
   projectName: 'melon', // Usually your repo name.
   themeConfig: {
