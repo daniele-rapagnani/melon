@@ -7,7 +7,7 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #f2ae3dff;
+  --ifm-color-primary: #929523ff;
   --ifm-color-primary-dark: #bfb84eff;
   --ifm-color-primary-darker: rgb(168, 162, 68);
   --ifm-color-primary-darkest: rgb(151, 145, 62);
@@ -30,4 +30,9 @@
   display: block;
   margin: 0 calc(-1 * var(--ifm-pre-padding));
   padding: 0 var(--ifm-pre-padding);
+}
+
+.navbar__logo {
+  height: 80%;
+  margin-right: 1rem;
 }
