@@ -51,7 +51,7 @@
 #define PRINTF_MAX_FLOAT 1e9
 #endif
 
-// support for the long long types (%llu or %p)
+// support for the long long types (" MELON_PRINTF_SIZE " or %p)
 // default: activated
 #ifndef PRINTF_DISABLE_SUPPORT_LONG_LONG
 #define PRINTF_SUPPORT_LONG_LONG

@@ -22,7 +22,7 @@ GCItem* melNewArray(VM* vm)
     arrObj->data = NULL;
 
 #ifdef _TRACK_ALLOCATIONS_GC
-    printf("Allocated array of size %llu (%p), total bytes allocated = %llu\n", objSize, arr, vm->gc.usedBytes);
+    printf("Allocated array of size " MELON_PRINTF_SIZE " (%p), total bytes allocated = " MELON_PRINTF_SIZE "\n", objSize, arr, vm->gc.usedBytes);
 #endif
 
     return arr;
@@ -111,7 +111,7 @@ TRet melFreeArray(VM* vm, GCItem* arr)
     ;
 
 #ifdef _TRACK_ALLOCATIONS_GC
-    printf("Freeing array of %llu bytes (%p), total bytes now = %llu\n", size + sizeof(GCItem), arr, vm->gc.usedBytes - (size + sizeof(GCItem)));
+    printf("Freeing array of " MELON_PRINTF_SIZE " bytes (%p), total bytes now = " MELON_PRINTF_SIZE "\n", size + sizeof(GCItem), arr, vm->gc.usedBytes - (size + sizeof(GCItem)));
 #endif
 
     vm->gc.usedBytes -= size;

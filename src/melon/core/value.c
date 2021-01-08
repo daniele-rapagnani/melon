@@ -75,7 +75,7 @@ TRet melCmpValues(VM* vm, Value* a, Value* b, TRet* res)
     return 1;
 }
 
-static void melGetObjectHashValue(VM* vm, Value* v, TUint64* hash)
+static void melGetObjectHashValue(VM* vm, Value* v, TValueHash* hash)
 {
     assert(v->type == MELON_TYPE_OBJECT);
 
@@ -118,7 +118,7 @@ static void melGetObjectHashValue(VM* vm, Value* v, TUint64* hash)
     *hash = result.pack.value.integer;
 }
 
-TRet melGetHashValue(VM* vm, Value* v, TUint64* hash)
+TRet melGetHashValue(VM* vm, Value* v, TValueHash* hash)
 {
     if (v->type == MELON_TYPE_NULL)
     {

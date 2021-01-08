@@ -1,4 +1,5 @@
 #include "melon/modules/io/io_os_api.h"
+#include "melon/core/utils.h"
 #include "melon/core/tstring.h"
 
 #include <stdio.h>
@@ -6,6 +7,7 @@
 
 TRet melStdioAPIOpenFile(Value* val, const char* name, const char* flags)
 {
+    const char* convertedPath = melConvertToNativePath(name, strlen(name), NULL);
     FILE* f = fopen(name, flags);
 
     if (f == NULL)

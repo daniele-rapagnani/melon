@@ -1,4 +1,4 @@
-name: Melon CI
+name: macOS
 
 on:
   push:
@@ -11,18 +11,35 @@ jobs:
 
     runs-on: macos-latest
 
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: "recursive"
+    
     - name: Install CMake
       uses: Symbitic/install-cmake@v0.1.0
       with:
         cmake: "3.14.4"
+    
     - name: Run CMake
       run: mkdir -p "${{ github.workspace }}/build" && cd "${{ github.workspace }}/build" && cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON ../
+    
     - name: Run Make
       run: cd "${{ github.workspace }}/build" && make
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: melon-macos
+        path: |
+          ${{ github.workspace }}/build/melon
+          ${{ github.workspace }}/build/assembler
+          ${{ github.workspace }}/build/disassembler"
+          ${{ github.workspace }}/build/tests
+
     - name: Run Tests
       run: cd "${{ github.workspace }}/tests" && ../build/tests
     

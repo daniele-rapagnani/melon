@@ -5,6 +5,12 @@
 #include "melon/core/array.h"
 #include "melon/libs/cJSON/cJSON.h"
 
+/***
+ * @module
+ * 
+ * This module provides built-in JSON serialization/deserialization support.
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -143,7 +149,36 @@ static cJSON* serializeJson(VM* vm, Value* node)
     return NULL;
 }
 
-TByte parseFunc(VM* vm)
+static TRet parseString(VM* vm, const Value* str)
+{
+    String* contentStr = melM_strFromObj(str->pack.obj);
+    const char* contentData = melM_strDataFromObj(str->pack.obj);
+
+    const char* errPtr = NULL;
+    cJSON* json = cJSON_ParseWithLengthOpts(contentData, contentStr->len + 1, &errPtr, 1);
+
+    if (json == NULL)
+    {
+        melM_stackPop(&vm->stack);
+        melM_vstackPushNull(&vm->stack);
+        return 1;
+    }
+
+    deserializeJson(vm, json);
+    cJSON_Delete(json);
+
+    return 1;
+}
+
+/***
+ * Reads and parses the provided JSON file.
+ * 
+ * @arg jsonPath A valid path to a readable file
+ * 
+ * @returns The deserialized JSON or `null` if parsing failed.
+ */
+
+static TByte parseFileFunc(VM* vm)
 {
     melM_arg(vm, jsonFile, MELON_TYPE_STRING, 0);
 
@@ -185,27 +220,33 @@ TByte parseFunc(VM* vm)
         return 1;
     }
 
-    String* contentStr = melM_strFromObj(contentResult.pack.obj);
-    const char* contentData = melM_strDataFromObj(contentResult.pack.obj);
-
-    const char* errPtr = NULL;
-    cJSON* json = cJSON_ParseWithLengthOpts(contentData, contentStr->len + 1, &errPtr, 1);
-
-    if (json == NULL)
-    {
-        melM_stackPop(&vm->stack);
-        melM_vstackPushNull(&vm->stack);
-        return 1;
-    }
-
-    deserializeJson(vm, json);
-
-    cJSON_Delete(json);
-
-    return 1;
+    return parseString(vm, &contentResult);
 }
 
-TByte stringifyFunc(VM* vm)
+/***
+ * Deserializes a given JSON from a string
+ * 
+ * @arg jsonString A string representing a valid JSON
+ * 
+ * @returns The deserialized JSON or `null` if parsing failed.
+ */
+
+static TByte parseFunc(VM* vm)
+{
+    melM_arg(vm, jsonString, MELON_TYPE_STRING, 0);
+    return parseString(vm, jsonString);
+}
+
+/***
+ * Serializes a given value to a JSON string.
+ * 
+ * @arg value The value that should be JSON serialized
+ * @arg prettify? `true` If the output should be prettified, defaults to `false`
+ * 
+ * @returns A JSON string representing `value` or `null` if serialization failed.
+ */
+
+static TByte stringifyFunc(VM* vm)
 {
     melM_arg(vm, value, MELON_TYPE_NONE, 0);
     melM_argOptional(vm, prettify, MELON_TYPE_BOOL, 1);
@@ -235,6 +276,7 @@ TByte stringifyFunc(VM* vm)
 static const ModuleFunction funcs[] = {
     // name, args, locals, func
     { "parse", 1, 0, parseFunc },
+    { "parseFile", 1, 0, parseFileFunc },
     { "stringify", 2, 0, stringifyFunc },
     { NULL, 0, 0, NULL }
 };

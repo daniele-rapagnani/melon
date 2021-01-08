@@ -6,13 +6,20 @@
 #include "melon/libs/xoshiro256ss/xoshiro256starstar.h"
 #include "melon/modules/random/seed_os_api.h"
 
+/***
+ * @module
+ * 
+ * This module exposes a PRNG and related functions to generate
+ * random values from a seed.
+ */ 
+
 #include <stdlib.h>
 #include <assert.h>
 
 static const TUint16 MAX_SEED_ATTEMPTS = 1000;
-static TUint64 globalSeed = 0;
+static TSize globalSeed = 0;
 
-static void setSeed(TUint64 seed)
+static void setSeed(TSize seed)
 {
     globalSeed = seed;
     spmx64_seed = seed;
@@ -32,7 +39,7 @@ static void ensureSeed(VM* vm)
     }
 
     TUint16 attempts = 0;
-    TUint64 newSeed = 0;
+    TSize newSeed = 0;
 
     while (newSeed == 0)
     {
@@ -49,12 +56,24 @@ static void ensureSeed(VM* vm)
     setSeed(newSeed);
 }
 
+/***
+ * Sets the random seed.
+ * 
+ * @arg seed An `Integer` representing the new seed
+ */
+
 static TByte seedFunc(VM* vm)
 {
     melM_arg(vm, seed, MELON_TYPE_INTEGER, 0);
     setSeed(seed->pack.value.integer);
     return 0;
 }
+
+/***
+ * Gets the current seed value.
+ * 
+ * @returns An `Integer` representing the current seed
+ */
 
 static TByte getSeedFunc(VM* vm)
 {
@@ -65,6 +84,16 @@ static TByte getSeedFunc(VM* vm)
 
     return 1;
 }
+
+/***
+ * Generates a random `Number` value, the resulting value will be
+ * between `min` and `max` inclusive.
+ * 
+ * @arg ?min The lower bound, defaults to 0.0
+ * @arg ?max The upper bound, defaults to 1.0
+ * 
+ * @returns A random `Number` between `min` and `max` inclusive.
+ */
 
 static TByte getRandomNumberFunc(VM* vm)
 {
@@ -102,7 +131,17 @@ static TByte getRandomNumberFunc(VM* vm)
     return 1;
 }
 
-TByte getRandomIntFunc(VM* vm)
+/***
+ * Generates a random `Integer` value, the resulting value will be
+ * between `min` and `max` inclusive.
+ * 
+ * @arg ?min The lower bound, defaults to the minimum negative `Integer` representable
+ * @arg ?max The upper bound, defaults to the maximum positive `Integer` representable
+ * 
+ * @returns A random `Integer` between `min` and `max` inclusive.
+ */
+
+static TByte getRandomIntFunc(VM* vm)
 {
     ensureSeed(vm);
 

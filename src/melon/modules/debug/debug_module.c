@@ -5,7 +5,19 @@
 #include "melon/core/array.h"
 #include "melon/core/utils.h"
 
+/***
+ * @module
+ * 
+ * This module groups some debugging utility functions together. It can be
+ * used to inspect the VM or build more sophisticated debugging
+ * functionalities on top of it.
+ */
+
 #include <stdlib.h>
+
+/***
+ * Prints the current stack to `stdout`
+ */
 
 static TByte printStackFunc(VM* vm)
 {
@@ -13,11 +25,21 @@ static TByte printStackFunc(VM* vm)
     return 0;
 }
 
+/***
+ * Prints the current call stack to `stdout`
+ */
+
 static TByte printCallstackFunc(VM* vm)
 {
     melPrintCallStackUtils(vm);
     return 0;
 }
+
+/***
+ * Prints an error and aborts the program's execution.
+ * 
+ * @arg message The error message
+ */
 
 static TByte errorFunc(VM* vm)
 {
@@ -27,6 +49,13 @@ static TByte errorFunc(VM* vm)
     melM_fatal(vm, "%.*s\n", str->len, cstr);
     return 0;
 }
+
+/***
+ * This function returns an array of the function objects
+ * which are currently in the call stack.
+ * 
+ * @returns An array of functions, the top of the stack is at index `0`
+ */
 
 static TByte getCallstackFunc(VM* vm)
 {
@@ -41,21 +70,27 @@ static TByte getCallstackFunc(VM* vm)
         CallFrame* cf = melM_stackGet(&vm->callStack, i);
         
         Value funcNameVal;
-        funcNameVal.type = MELON_TYPE_STRING;
-
-        if (cf->function->name == NULL)
-        {
-            funcNameVal.pack.obj = melNewString(vm, "@anonymous@", strlen("@anonymous@"));
-        }
-        else
-        {
-            funcNameVal.pack.obj = cf->function->name;
-        }
-
+        funcNameVal.type = MELON_TYPE_CLOSURE;
+        funcNameVal.pack.obj = cf->closure;
+        
         melPushArray(vm, arr, &funcNameVal);
     }
 
     return 1;
+}
+
+/***
+ * Dumps a value to `stdout` using the internal dump function
+ * 
+ * @arg val The value to dump
+ */
+
+static TByte dumpFunc(VM* vm)
+{
+    melM_arg(vm, val, MELON_TYPE_NONE, 0);
+    melPrintValueUtils(vm, val);
+    
+    return 0;
 }
 
 static const ModuleFunction funcs[] = {
@@ -64,6 +99,7 @@ static const ModuleFunction funcs[] = {
     { "printCallstack", 0, 0, &printCallstackFunc},
     { "error", 1, 0, &errorFunc},
     { "getCallstack", 0, 0, &getCallstackFunc},
+    { "dump", 1, 0, &dumpFunc },
     NULL
 };
 

@@ -10,6 +10,15 @@
 #include <assert.h>
 #include <string.h>
 
+/***
+ * @module
+ * This module is dedicated to input/output operations.
+ * 
+ * @exports stdin The standard input file
+ * @exports stdout The standard output file
+ * @exports stderr The standard error file
+ */
+
 static Value stringUtilsKey;
 static Value toStringKey;
 static Value fileDescSymbol;
@@ -71,6 +80,16 @@ static void pushNewFileObj(VM* vm, Value* path, Value* flags)
     melM_vstackPushGCItem(&vm->stack, fileObj);
 }
 
+/***
+ * Opens a file and returns an object that can be used to
+ * do I/O on that file.
+ * 
+ * @arg path The path to the file to open
+ * @arg flags The open flags, os/context dependent, such as `"w"`, `"r"`, `"w+"`, ...
+ * 
+ * @returns A valid descriptor or null
+ */
+
 static TByte openFileFunction(VM* vm)
 {
     melM_arg(vm, path, MELON_TYPE_STRING, 0);
@@ -79,6 +98,14 @@ static TByte openFileFunction(VM* vm)
     pushNewFileObj(vm, path, flags);
     return 1;
 }
+
+/***
+ * Closes a file that was previously open.
+ * 
+ * @arg file A file descriptor returned by `open`
+ * 
+ * @returns `true` on success, `false` otherwise
+ */
 
 static TByte closeFileFunction(VM* vm)
 {
@@ -94,6 +121,15 @@ static TByte closeFileFunction(VM* vm)
     
     return 1;
 }
+
+/***
+ * Reads data from a file.
+ * 
+ * @arg file A file descriptor returned by `open`
+ * @arg ?bytes The maximum number of bytes to read
+ * 
+ * @returns `true` on success, `false` otherwise
+ */
 
 static TByte readFileFunction(VM* vm)
 {
@@ -116,6 +152,15 @@ static TByte readFileFunction(VM* vm)
     return 1;
 }
 
+/***
+ * Writes data to a file descriptor.
+ * 
+ * @arg file A file descriptor returned by `open`
+ * @arg data A string with the data to be written
+ * 
+ * @returns `true` on success, `false` otherwise
+ */
+
 static TByte writeFileFunction(VM* vm)
 {
     melM_arg(vm, file, MELON_TYPE_OBJECT, 0);
@@ -131,6 +176,14 @@ static TByte writeFileFunction(VM* vm)
     return 1;
 }
 
+/***
+ * Flushes the buffer for a file, writing any pending changes immediately.
+ * 
+ * @arg file A file descriptor returned by `open`
+ * 
+ * @returns `true` on success, `false` otherwise
+ */
+
 static TByte flushFileFunction(VM* vm)
 {
     melM_arg(vm, file, MELON_TYPE_OBJECT, 0);
@@ -144,6 +197,14 @@ static TByte flushFileFunction(VM* vm)
     return 1;
 }
 
+/***
+ * Gets the current position inside a file
+ * 
+ * @arg file A file descriptor returned by `open`
+ * 
+ * @returns The number of bytes into the file
+ */
+
 static TByte tellFileFunction(VM* vm)
 {
     melM_arg(vm, file, MELON_TYPE_OBJECT, 0);
@@ -154,6 +215,16 @@ static TByte tellFileFunction(VM* vm)
     melM_stackPush(&vm->stack, &result);
     return 1;
 }
+
+/***
+ * Seeks the current position inside the file to a given value
+ * 
+ * @arg file A file descriptor returned by `open`
+ * @arg offset An integer with the new offset in bytes
+ * @arg ?fromEnd If `true` sets the new position counting from the end of the file
+ * 
+ * @returns `true` on success, `false` otherwise
+ */
 
 static TByte seekFileFunction(VM* vm)
 {
@@ -178,6 +249,14 @@ static TByte seekFileFunction(VM* vm)
     return 1;
 }
 
+/***
+ * Returns the size of a given open file descriptor.
+ * 
+ * @arg file A file descriptor returned by `open`
+ * 
+ * @returns The number of total bytes for the file
+ */
+
 static TByte sizeFileFunction(VM* vm)
 {
     melM_arg(vm, file, MELON_TYPE_OBJECT, 0);
@@ -189,6 +268,14 @@ static TByte sizeFileFunction(VM* vm)
     return 1;
 }
 
+/***
+ * Checks if the end of file has been reached for a file descriptor.
+ * 
+ * @arg file A file descriptor returned by `open`
+ * 
+ * @returns `true` if the EOF has been reached, `false` otherwise
+ */
+
 static TByte isEOFFileFunction(VM* vm)
 {
     melM_arg(vm, file, MELON_TYPE_OBJECT, 0);
@@ -199,6 +286,14 @@ static TByte isEOFFileFunction(VM* vm)
     melM_stackPush(&vm->stack, &result);
     return 1;
 }
+
+/***
+ * This function prints one or more values directly to `stdout`.
+ * Each value is first converted to a string and then output.
+ * A space is used as a separator between each value.
+ * 
+ * @arg ... A list of values to print
+ */
 
 static TByte printLineFunction(VM* vm)
 {

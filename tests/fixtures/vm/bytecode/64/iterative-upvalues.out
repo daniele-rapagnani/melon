@@ -1,0 +1,18 @@
+Stack top: 13
+
+Stack:
+---
+0) 29 : TInteger
+1) 28 : TInteger
+2) 27 : TInteger
+3) 26 : TInteger
+4) 25 : TInteger
+5) 24 : TInteger
+6) 23 : TInteger
+7) 22 : TInteger
+8) 21 : TInteger
+9) 20 : TInteger
+10) Array(size = 10) : TArray
+11) 20 : TInteger
+12) 10 : TInteger
+---

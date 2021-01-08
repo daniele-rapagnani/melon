@@ -3,6 +3,13 @@
 #include "melon/core/array.h"
 #include "melon/core/tstring.h"
 
+/***
+ * @module
+ * 
+ * This module exposes an interface with the command line to make it
+ * easier to write utility scripts or terminal applications.
+ */
+
 #include <stdlib.h>
 #include <assert.h>
 
@@ -16,6 +23,13 @@ TRet melSetArgs(VM* vm, const char** eargv, int eargc)
 
     return 0;
 }
+
+/***
+ * Returns the arguments passed on the command line to the current
+ * application.
+ * 
+ * @returns An array of strings, each string is an argument
+ */
 
 static TByte getArgsFunc(VM* vm)
 {

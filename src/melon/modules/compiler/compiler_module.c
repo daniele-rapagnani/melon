@@ -6,12 +6,32 @@
 #include "melon/core/tstring.h"
 #include "melon/modules/modules.h"
 
+/***
+ * @module
+ * 
+ * This module exposes access to the compiler itself and can be
+ * used for meta-programming. This is somewhat similar to concepts
+ * like the `eval` function in some dynamic languages except that
+ * the code is always contained inside a new function minimizing side-effects.
+ */
+
 #include <assert.h>
 #include <string.h>
 
 static Value ioKey;
 static Value openFileKey;
 static Value readFileKey;
+
+/***
+ * Compiles a given `String` to a `Function`.
+ * If no error callback is provided, the interpreter will stop as if
+ * a syntax error was encoutered in one of the main source files.
+ * 
+ * @arg file The source file path
+ * @arg ?errorCb A callback that will be called. It will be called with `message`, `file`, `line`, `col` respectively
+ * 
+ * @returns A valid `Function` or `null`
+ */
 
 static TByte compileString(VM* vm)
 {
@@ -27,6 +47,17 @@ static TByte compileString(VM* vm)
     
     return 1;
 }
+
+/***
+ * Compiles a given file to a `Function`.
+ * If no error callback is provided, the interpreter will stop as if
+ * a syntax error was encoutered in one of the main source files.
+ * 
+ * @arg file The source file path
+ * @arg ?errorCb A callback that will be called. It will be called with `message`, `file`, `line`, `col` respectively
+ * 
+ * @returns A valid `Function` or `null`
+ */
 
 static TByte compileFile(VM* vm)
 {

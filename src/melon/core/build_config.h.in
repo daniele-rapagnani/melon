@@ -1,0 +1,14 @@
+#ifndef __melon__build_config_h_h__
+#define __melon__build_config_h_h__
+
+#cmakedefine _DEBUG_GC
+#cmakedefine _TRACK_ALLOCATIONS_GC
+#cmakedefine _PRINT_GSTATS_GC
+#cmakedefine _PRINT_STATS_GC
+#cmakedefine _STRESS_GC
+#cmakedefine _ZERO_MEMORY_ON_FREE_GC
+#cmakedefine _DEBUG_COMPILER
+#cmakedefine HAVE_UNISTD
+#cmakedefine HAVE_EXECINFO
+
+#endif // __melon__build_config_h_h__

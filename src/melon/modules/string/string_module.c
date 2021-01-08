@@ -10,6 +10,12 @@
 #include "melon/core/function.h"
 #include "melon/core/utils.h"
 
+/***
+ * @module
+ * 
+ * This module provides functions for basic string manipulation.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -59,7 +65,16 @@ TRet melToString(VM* vm, const Value* se)
         case MELON_TYPE_INTEGER:
             {
                 static char number[MELON_MAX_INT64_CHAR_COUNT];
-                snprintf(number, MELON_MAX_INT64_CHAR_COUNT, "%lld", se->pack.value.integer);
+                snprintf(
+                    number, 
+                    MELON_MAX_INT64_CHAR_COUNT, 
+#ifdef MELON_64BIT
+                    "" MELON_PRINTF_INT "",
+#else
+                    "%ld",
+#endif
+                    se->pack.value.integer
+                );
                 newString = melNewString(vm, number, strlen(number));
             }
             break;
@@ -193,12 +208,29 @@ TRet melToString(VM* vm, const Value* se)
     return 0;
 }
 
+/***
+ * Converts the provided value to its `String` representation.
+ * 
+ * @arg val The value to convert to string
+ * @returns The string representation of `val`
+ */
+
 static TByte toString(VM* vm)
 {
     Value* se = melGetLocalVM(vm, melGetTopCallFrameVM(vm), 0, 0);
     melToString(vm, se);
     return 1;
 }
+
+/***
+ * Returns an `Integer` representing the ASCII code of the
+ * character at index `idx` in `str`.
+ * 
+ * @arg str The subject string
+ * @arg idx The character's index
+ * 
+ * @returns An `Integer` or `null` if the index is out of range
+ */
 
 static TByte charCodeAt(VM* vm)
 {
@@ -223,6 +255,13 @@ static TByte charCodeAt(VM* vm)
     melM_stackPush(&vm->stack, &resultValue);
     return 1;
 }
+
+/***
+ * Creates a string from a list of ASCII codes.
+ * 
+ * @arg codes A single `Integer` or an `Array` of `Integer` values. Any non-`Integer` entry will be skipped.
+ * @returns A new string made up of the provided sequence of ASCII codes
+ */
 
 static TByte fromCharCodes(VM* vm)
 {
@@ -275,14 +314,24 @@ static TByte fromCharCodes(VM* vm)
     return 1;
 }
 
+/***
+ * Looks for any occurrence of `needle` in `haystack` starting from the `start` index.
+ * 
+ * @arg haystack The string in which to find the `needle`
+ * @arg needle The substring to search for
+ * @arg ?start The index at which the search should start, defaults to 0
+ * 
+ * @returns An `Integer` with the index in `haystack` at which the first character of `needle` was found. `null` if `needle` couldn't be found.
+ */
+
 static TByte find(VM* vm)
 {
     melM_arg(vm, haystack, MELON_TYPE_STRING, 0);
     melM_arg(vm, needle, MELON_TYPE_STRING, 1);
     melM_argOptional(vm, start, MELON_TYPE_INTEGER, 2);
 
-    TUint64 index;
-    TUint64 startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
+    TSize index;
+    TSize startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
     Value result;
 
     if (melFirstIndexOfString(vm, haystack->pack.obj, needle->pack.obj, startIndex, &index) == 0)
@@ -300,6 +349,19 @@ static TByte find(VM* vm)
     return 1;
 }
 
+/***
+ * Replaces with `replacement` any occurrence of `needle` found inside `haystack` between the
+ * `start` (inclusive) and `end` (exclusive) indices.
+ * 
+ * @arg haystack The string in which to find the `needle`
+ * @arg needle The substring to be replaced by `replacement`
+ * @arg replacement The string to replace any occurrence of `needle`
+ * @arg ?start The index of `haystack` at which the search should start, defaults to 0
+ * @arg ?end The index of `haystack` at which the search should end, defaults to the length of `haystack`
+ * 
+ * @returns A new string with `needle` replaced by `replacement` or the original `haystack` if `needle` was not found.
+ */
+
 static TByte replace(VM* vm)
 {
     melM_arg(vm, haystack, MELON_TYPE_STRING, 0);
@@ -308,9 +370,9 @@ static TByte replace(VM* vm)
     melM_argOptional(vm, start, MELON_TYPE_INTEGER, 3);
     melM_argOptional(vm, end, MELON_TYPE_INTEGER, 4);
 
-    TUint64 index;
-    TUint64 startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
-    TUint64 endIndex = end->type == MELON_TYPE_NULL ? 0 : end->pack.value.integer;
+    TSize index;
+    TSize startIndex = start->type == MELON_TYPE_NULL ? 0 : start->pack.value.integer;
+    TSize endIndex = end->type == MELON_TYPE_NULL ? 0 : end->pack.value.integer;
 
     GCItem* newStr = melNewReplaceString(
         vm,
@@ -350,20 +412,50 @@ static TByte transform(VM* vm, int(*transformFunc)(int), TSize limit)
     return 1;
 }
 
+/***
+ * Transforms the provided string to lowercase.
+ * 
+ * @arg str The string to transform
+ * @returns The transformed string
+ */
+
 static TByte toLower(VM* vm)
 {
     return transform(vm, tolower, 0);
 }
+
+/***
+ * Transforms the provided string to uppercase.
+ * 
+ * @arg str The string to transform
+ * @returns The transformed string
+ */
 
 static TByte toUpper(VM* vm)
 {
     return transform(vm, toupper, 0);
 }
 
+/***
+ * Capitalizes the provided string, 
+ * only the first character is transformed to uppercase.
+ * 
+ * @arg str The string to transform
+ * @returns The transformed string
+ */
+
 static TByte toCapitalized(VM* vm)
 {
     return transform(vm, toupper, 1);
 }
+
+/***
+ * Trims a string removing any space character from 
+ * the beginning and end of a string.
+ * 
+ * @arg str The string to be trimmed
+ * @returns The trimmed string
+ */
 
 static TByte trim(VM* vm)
 {
@@ -385,7 +477,7 @@ static TByte trim(VM* vm)
         frontSpacesCount++;
     }
 
-    for (TSize i = strObj->len; i > frontSpacesCount; i--)
+    for (TSize i = strObj->len; i > frontSpacesCount + 1; i--)
     {
         if (!isspace(strData[i - 1]))
         {
@@ -397,7 +489,10 @@ static TByte trim(VM* vm)
 
     assert((frontSpacesCount + backSpacesCount) <= strObj->len);
 
-    GCItem* newStr = melNewDataString(vm, strObj->len - frontSpacesCount - backSpacesCount);
+    // +1 for the null-termination
+    TSize totalLen = strObj->len - frontSpacesCount - backSpacesCount + 1;
+    GCItem* newStr = melNewDataString(vm, totalLen);
+
     melM_vstackPushGCItem(&vm->stack, newStr);
 
     char* resData = melM_strDataFromObj(newStr);
@@ -410,6 +505,16 @@ static TByte trim(VM* vm)
 
     return 1;
 }
+
+/***
+ * Formats a string with [printf](http://www.cplusplus.com/reference/cstdio/printf/) style
+ * formatting.
+ * 
+ * @arg fmt The format to be used when formatting the string
+ * @arg args An array of the values required by the `fmt` string, it may be an empty array
+ * 
+ * @returns The values provided in `args` formatted using `fmt`
+ */
 
 static TByte format(VM* vm)
 {
@@ -427,6 +532,78 @@ static TByte format(VM* vm)
     return 1;
 }
 
+static void addSplitItem(VM* vm, GCItem* arr, const char* start, TSize len)
+{
+    if (len == 0)
+    {
+        return;
+    }
+
+    GCItem* item = melNewString(vm, start, len);
+    
+    Value itemV;
+    itemV.type = item->type;
+    itemV.pack.obj = item;
+
+    melPushArray(vm, arr, &itemV);
+}
+
+/***
+ * Splits `str` using `token` as a delimiter.
+ * 
+ * @arg str The string to be splitted
+ * @arg token The substring to use as delimiter
+ * 
+ * @returns An array with the strings resulted from splitting `str` by `token`.
+ */
+
+static TByte split(VM* vm)
+{
+    melM_arg(vm, str, MELON_TYPE_STRING, 0);
+    melM_arg(vm, token, MELON_TYPE_STRING, 1);
+
+    String* strObj = melM_strFromObj(str->pack.obj);
+    String* tokenObj = melM_strFromObj(token->pack.obj);
+
+    GCItem* result = melNewArray(vm);
+    melM_vstackPushGCItem(&vm->stack, result);
+
+    if (tokenObj->len >= strObj->len)
+    {
+        return 1;
+    }
+
+    TSize ti = 0;
+    TSize len = 0;
+    const char* s = strObj->string;
+
+    for (TSize i = 0; i < strObj->len; i++)
+    {
+        if (strObj->string[i] == tokenObj->string[ti])
+        {
+            ti++;
+
+            if (ti == tokenObj->len)
+            {             
+                addSplitItem(vm, result, s, len);
+
+                s += len + ti;
+                ti = 0;
+                len = 0;
+            }
+
+            continue;
+        }
+
+        len += ti + 1;
+        ti = 0;
+    }
+
+    addSplitItem(vm, result, s, len);
+
+    return 1;
+}
+
 static const ModuleFunction funcs[] = {
     // name, args, locals, func
     { "toString", 1, 0, toString },
@@ -439,6 +616,7 @@ static const ModuleFunction funcs[] = {
     { "toCapitalized", 1, 0, toCapitalized },
     { "trim", 1, 0, trim },
     { "format", 2, 0, format, 0, 1 },
+    { "split", 2, 0, split },
     { NULL, 0, 0, NULL }
 };
 

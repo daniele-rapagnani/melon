@@ -14,7 +14,7 @@ struct ObjectNode
 {
     Value key;
     Value value;
-    TUint64 hash;
+    TValueHash hash;
     struct ObjectNode* next;
 };
 

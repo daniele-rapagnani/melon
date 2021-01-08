@@ -138,8 +138,8 @@ TRet melAddRootGC(VM* vm, GC* gc, GCItem* item);
 TRet melAddRootValueGC(VM* vm, GC* gc, Value* value);
 TRet melRemoveRootGC(VM* vm, GC* gc, GCItem* item);
 
-TRet melMarkGreyGC(GC* gc, GCItem* item);
-TRet melMarkGreyValueGC(GC* gc, Value* item);
+TRet melMarkGreyGC(VM* vm, GC* gc, GCItem* item);
+TRet melMarkGreyValueGC(VM* vm, GC* gc, Value* item);
 
 TRet melAddWhiteGC(GC* gc, GCItem* item);
 TRet melRemoveWhiteGC(GC* gc, GCItem* item);

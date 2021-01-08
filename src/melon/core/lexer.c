@@ -1,5 +1,6 @@
 #include "melon/core/lexer.h"
 #include "melon/core/utils.h"
+#include "melon/core/memory_utils.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -90,6 +91,16 @@ TRet melCreateLexerFile(Lexer* l, const char* file, const char* source, TSize le
     l->column = 0;
     l->file = NULL;
 
+    if (melCreateBuffer(&l->curToken.buffer, 0) != 0)
+    {
+        return 1;
+    }
+
+    if (melCreateBuffer(&l->futureToken.buffer, 0) != 0)
+    {
+        return 1;
+    }
+
     if (file != NULL)
     {
         l->file = (char*)malloc(sizeof(char) * (strlen(file) + 1));
@@ -171,7 +182,19 @@ static TRet melAdvanceMatchChar(Lexer* l, char c)
     return 1;
 }
 
-static void setToken(Token* t, TokenType type)
+static TRet melExpectChar(Lexer* l, char c, const char* error)
+{
+    if (melGetChar(l) != c)
+    {
+        melM_error(l, error);
+        return 1;
+    }
+
+    melAdvanceChar(l);
+    return 0;
+}
+
+static void setToken(Token* t, MelTokenType type)
 {
     t->type = type;
 }
@@ -279,13 +302,13 @@ static TUint32 melCheckKeyword(Lexer* l, const char* keyword)
     return keywordLen;
 }
 
-static void melMakeToken(Lexer* l, TokenType t, TUint32 len)
+static void melMakeToken(Lexer* l, MelTokenType t, TUint32 len)
 {
     l->futureToken.type = t;
     l->futureToken.len = len;
 }
 
-static void melMakeTokenAndAdvance(Lexer* l, TokenType t, TUint32 len)
+static void melMakeTokenAndAdvance(Lexer* l, MelTokenType t, TUint32 len)
 {
     melMakeToken(l, t, len);
     melSkipChars(l, len);
@@ -457,6 +480,128 @@ static TRet melParseNumber(Lexer* l, TUint32* s)
     return 0;
 }
 
+static void melClearBuffer(Lexer* l)
+{
+    l->futureToken.buffer.size = 0;
+}
+
+static void melAppendBuffer(Lexer* l, char c)
+{
+    if (melWriteBuffer(&l->futureToken.buffer, (const TByte*)&c, 1) != 0)
+    {
+        melM_error(l, "Can't write to token string buffer");
+    }
+}
+
+static void melAppendBufferCur(Lexer* l)
+{
+    melAppendBuffer(l, melGetChar(l));
+}
+
+static TRet melUTF8Encode(char *out, uint32_t utf)
+{
+    if (utf <= 0x7F) 
+    {
+        // Plain ASCII
+        out[0] = (char) utf;
+        out[1] = 0;
+        return 1;
+    }
+    else if (utf <= 0x07FF) 
+    {
+        // 2-byte unicode
+        out[0] = (char) (((utf >> 6) & 0x1F) | 0xC0);
+        out[1] = (char) (((utf >> 0) & 0x3F) | 0x80);
+        out[2] = 0;
+        return 2;
+    }
+    else if (utf <= 0xFFFF) 
+    {
+        // 3-byte unicode
+        out[0] = (char) (((utf >> 12) & 0x0F) | 0xE0);
+        out[1] = (char) (((utf >>  6) & 0x3F) | 0x80);
+        out[2] = (char) (((utf >>  0) & 0x3F) | 0x80);
+        out[3] = 0;
+        return 3;
+    }
+    else if (utf <= 0x10FFFF) 
+    {
+        // 4-byte unicode
+        out[0] = (char) (((utf >> 18) & 0x07) | 0xF0);
+        out[1] = (char) (((utf >> 12) & 0x3F) | 0x80);
+        out[2] = (char) (((utf >>  6) & 0x3F) | 0x80);
+        out[3] = (char) (((utf >>  0) & 0x3F) | 0x80);
+        out[4] = 0;
+        return 4;
+    }
+    else 
+    { 
+        // error - use replacement character
+        out[0] = (char) 0xEF;  
+        out[1] = (char) 0xBF;
+        out[2] = (char) 0xBD;
+        out[3] = 0;
+        return 0;
+    }
+}
+
+static void melConvertUnicodeCodepoint(Lexer* l)
+{
+    melExpectChar(l, 'u', "Invalid unicode code point escape: missing leading 'u'");
+    melExpectChar(l, '{', "Invalid unicode code point escape: Missing opening brace.");
+
+    char* start = (char*)l->curChar;
+    TSize len = 0;
+
+    while(melGetChar(l) != '}' && melGetChar(l) != '\0')
+    {
+        len++;
+        melAdvanceChar(l);
+    }
+
+    melExpectChar(l, '}', "Invalid unicode code point escape: Missing closing brace.");
+    
+    // Leave the last char to be consumed by the string lexing loop
+    l->curChar--;
+    char* endChar = (char*)l->curChar;
+    *endChar = '\0';
+
+    TUint32 codepoint = strtol(start, NULL, 16);
+    *endChar = '}';
+
+    char encodedCP[5];
+    TByte cpLen = melUTF8Encode(encodedCP, codepoint);
+
+    for (TByte i = 0; i < cpLen; i++)
+    {
+        melAppendBuffer(l, encodedCP[i]);
+    }
+}
+
+static void melConvertEscaped(Lexer* l)
+{
+    melAdvanceChar(l);
+
+    switch(melGetChar(l))
+    {
+        case 'a': melAppendBuffer(l, '\a'); break;
+        case 'b': melAppendBuffer(l, '\b'); break;
+        case 'f': melAppendBuffer(l, '\f'); break;
+        case 'n': melAppendBuffer(l, '\n'); break;
+        case 'r': melAppendBuffer(l, '\r'); break;
+        case 't': melAppendBuffer(l, '\t'); break;
+        case 'v': melAppendBuffer(l, '\v'); break;
+        
+        case 'u': 
+            melConvertUnicodeCodepoint(l);
+            break;
+            
+        default:
+            melAppendBufferCur(l);
+            break;
+    }
+}
+
 TRet melAdvanceLexer(Lexer* l)
 {
     l->curToken = l->futureToken;
@@ -515,32 +660,43 @@ TRet melAdvanceLexer(Lexer* l)
         case '"':
         {
             TUint32 s = 0;
+            char c;
+            TBool parsingString = 1;
 
             // Comsumes the opening quote
             melAdvanceChar(l);
+            melClearBuffer(l);
 
             while(melGetChar(l) != '"')
             {
+                switch(melGetChar(l))
+                {
+                    case '\\':
+                        melConvertEscaped(l);
+                        break;
+                    
+                    default:
+                        melAppendBufferCur(l);
+                        break;
+                }
+ 
                 if (melAdvanceChar(l) != 0)
                 {
-                    melM_error(l, "Unexpected end of file");
+                    melM_error(l, "Unclosed string literal");
                     return 1;
                 }
 
                 s++;
             }
 
-            if (melGetChar(l) != '"')
-            {
-                melM_error(l, "Unclosed string literal");
-                return 1;
-            }
+            melAppendBuffer(l, '\0');
 
             melMakeToken(l, MELON_TOKEN_STRING, s);
             l->futureToken.start++; // Removes the starting quote;
 
-            // Consume the ending quote
+            // Skips the ending quote
             melAdvanceChar(l);
+
             break;
         }
 
@@ -594,7 +750,7 @@ TRet melAdvanceLexer(Lexer* l)
     return 0;
 }
 
-static void melPrintError(Lexer* l, TokenType expected, TokenType actual)
+static void melPrintError(Lexer* l, MelTokenType expected, MelTokenType actual)
 {
     struct StrFormat sf;
     memset(&sf, 0, sizeof(struct StrFormat));
@@ -623,7 +779,7 @@ TRet melPopLexer(Lexer* l, Token* outToken)
     return 0;
 }
 
-TRet melAdvanceIfTypeLexer(Lexer* l, TokenType t)
+TRet melAdvanceIfTypeLexer(Lexer* l, MelTokenType t)
 {
     if (melCurTokenLexer(l)->type != t)
     {
@@ -633,7 +789,7 @@ TRet melAdvanceIfTypeLexer(Lexer* l, TokenType t)
     return melAdvanceLexer(l);
 }
 
-TRet melPopTypeLexer(Lexer* l, TokenType t)
+TRet melPopTypeLexer(Lexer* l, MelTokenType t)
 {
     if (melAdvanceIfTypeLexer(l, t) != 0)
     {
@@ -644,7 +800,7 @@ TRet melPopTypeLexer(Lexer* l, TokenType t)
     return 0;
 }
 
-TRet melEnsureTokenLexer(Lexer* l, TokenType t)
+TRet melEnsureTokenLexer(Lexer* l, MelTokenType t)
 {
     if (melCheckTokenLexer(l, t) != 0)
     {
@@ -655,7 +811,7 @@ TRet melEnsureTokenLexer(Lexer* l, TokenType t)
     return 0;
 }
 
-TRet melCheckTokenLexer(Lexer* l, TokenType t)
+TRet melCheckTokenLexer(Lexer* l, MelTokenType t)
 {
     if (melCurTokenLexer(l) == NULL)
     {
@@ -665,7 +821,7 @@ TRet melCheckTokenLexer(Lexer* l, TokenType t)
     return melCurTokenLexer(l)->type == t ? 0 : 1;
 }
 
-TRet melCheckPeekedTokenLexer(Lexer* l, TokenType t)
+TRet melCheckPeekedTokenLexer(Lexer* l, MelTokenType t)
 {
     if (melPeekLexer(l) == NULL)
     {

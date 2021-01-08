@@ -2,9 +2,23 @@
 #include "melon/modules/modules.h"
 #include "melon/core/tstring.h"
 
+/***
+ * @module
+ * 
+ * This module provides basic utility functions to interact with [`Integer`](integer.md) values.
+ */
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
+
+/***
+ * Converts a `String` to an `Integer`.
+ * 
+ * @arg strInt A string representing an integer number
+ * 
+ * @returns A valid `Integer` or `null`.
+ */
 
 static TByte fromStringFunc(VM* vm)
 {

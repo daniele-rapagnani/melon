@@ -7,33 +7,39 @@ option(GSTATS_GC "Print global stats for the garbage collector when main functio
 option(STATS_GC "Print stats for the garbage collector for every collection cycle" OFF)
 option(DEBUG_COMPILER "Outputs compiled instructions as the compiler runs" OFF)
 option(PROFILING_BUILD "Creates a build suitable for profiling" OFF)
+option(BUILD_32 "Sets the build target to 32 bits" OFF)
 
 if(DEBUG_GC)
-    add_definitions(-D_TRACK_ALLOCATIONS_GC)
-    add_definitions(-D_DEBUG_GC)
+    set(_DEBUG_GC ON)
+    set(_TRACK_ALLOCATIONS_GC ON)
 endif(DEBUG_GC)
 
 if(DEBUG_GC OR GSTATS_GC)
-    add_definitions(-D_PRINT_GSTATS_GC)
+    set(_PRINT_GSTATS_GC ON)
 endif(DEBUG_GC OR GSTATS_GC)
 
 if(DEBUG_GC OR STATS_GC)
-    add_definitions(-D_PRINT_STATS_GC)
+    set(_PRINT_STATS_GC ON)
 endif(DEBUG_GC OR STATS_GC)
 
 if(STRESS_GC)
-    add_definitions(-D_STRESS_GC)
-    add_definitions(-D_ZERO_MEMORY_ON_FREE_GC)
+    set(_STRESS_GC ON)
+    set(_ZERO_MEMORY_ON_FREE_GC ON)
 endif(STRESS_GC)
 
 if(DEBUG_COMPILER)
-    add_definitions(-D_DEBUG_COMPILER)
+    set(_DEBUG_COMPILER ON)
 endif(DEBUG_COMPILER)
 
 if (APPLE)
     set(CMAKE_MACOSX_RPATH 0)
     set(ENABLE_CUSTOM_COMPILER_FLAGS Off)
 endif (APPLE)
+
+if ((UNIX OR MINGW) AND BUILD_32)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+endif()
     
 option(CJSON_OVERRIDE_BUILD_SHARED_LIBS "" On)
 option(CJSON_BUILD_SHARED_LIBS "" Off)
@@ -46,6 +52,8 @@ check_include_file("sys/stat.h" HAVE_POSIX_STAT)
 check_include_file("stdio.h" HAVE_STDIO)
 check_include_file("unistd.h" HAVE_UNISTD)
 check_include_file("libgen.h" HAVE_LIBGEN)
+check_include_file("windows.h" HAVE_WINDOWS)
+check_include_file("execinfo.h" HAVE_EXECINFO)
 
 check_symbol_exists(arc4random_buf "stdlib.h" HAVE_ARC4RAND)
 
@@ -67,26 +75,31 @@ if (PROFILING_BUILD)
 endif (PROFILING_BUILD)
 
 if (HAVE_STDIO)
-    message("Using stdio API for the IO module")
+    message(STATUS "Using stdio API for the IO module")
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/io/platform/io_os_api_stdio.c)
 endif(HAVE_STDIO)
 
 if (HAVE_UNISTD AND HAVE_POSIX_STAT)
-    message("Using POSIX API for the FS module")
+    message(STATUS "Using POSIX API for the FS module")
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/fs/platform/fs_os_api_posix.c)
 endif(HAVE_UNISTD AND HAVE_POSIX_STAT)
 
-if (HAVE_LIBGEN)
-    message("Using POSIX API for the path module")
+if(HAVE_WINDOWS)
+    message(STATUS "Using Windows API for the path module")
+    set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/path/platform/path_os_api_windows.c)
+elseif (HAVE_LIBGEN)
+    message(STATUS "Using POSIX API for the path module")
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/path/platform/path_os_api_libgen.c)
-endif(HAVE_LIBGEN)
+endif()
 
 if (HAVE_ARC4RAND OR HAVE_BSD_ARC4RAND)
-    message("Using BSD API for the random's seed module")
+    message(STATUS "Using BSD API for the random's seed module")
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/random/platform/seed_os_api_arc4r.c)
 else()
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/random/platform/seed_os_api_time.c)
 endif(HAVE_ARC4RAND OR HAVE_BSD_ARC4RAND)
+
+configure_file(src/melon/core/build_config.h.in build_config.h)
 
 add_library(
     melonscript-vm STATIC 
@@ -135,9 +148,16 @@ add_library(
     src/melon/modules/function/function_module.c
     src/melon/modules/gc/gc_module.c
     src/melon/modules/random/random_module.c
+    src/melon/modules/system/system_module.c
 
     ${PLATFORM_SRCS}
 )
+
+if (MINGW)
+    message(STATUS "Disabling stack protector as it is not supported on MinGW")
+    add_definitions(-fno-stack-protector)
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
+endif()
 
 add_subdirectory(src/melon/libs/cJSON)
 
@@ -152,11 +172,12 @@ add_library(
     src/melon/libs/splitmix64/splitmix64.c
 )
 
-include_directories(
+target_include_directories(
+    melonscript-vm PUBLIC     
     src/
+    ${PROJECT_BINARY_DIR}
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
 add_executable(
@@ -190,5 +211,18 @@ add_executable(
     tests
     tests/main.cpp
 )
+
+if (MINGW)
+    # On MinGW add static linking of system libraries so that the resulting
+    # executable is portable.
+    # Also use lld to link the binaries: this solves some issues with catch2
+    # and also speeds the build up considerably.
+    
+    set(MINGW_LD_FLAGS "-static-libgcc" "-static-libstdc++" "-static" "-lpthread" "-fuse-ld=lld")
+    target_link_options(melon PUBLIC ${MINGW_LD_FLAGS})
+    target_link_options(assembler PUBLIC ${MINGW_LD_FLAGS})
+    target_link_options(disassembler PUBLIC ${MINGW_LD_FLAGS})
+    target_link_options(tests PUBLIC ${MINGW_LD_FLAGS})
+endif(MINGW)
 
 target_link_libraries(tests ${LINKLIBS})
