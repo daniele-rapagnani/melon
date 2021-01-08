@@ -147,7 +147,7 @@ io.print(myObj[anotherSymbol]); // null
 
 :::note
 This technique is used extensively throughout melon's core and modules.
-One example is [operator overloading](operator_overlading.md).
+One example is [operator overloading](operators.md#operators-overloading).
 :::
 
 ## Iterating over keys
