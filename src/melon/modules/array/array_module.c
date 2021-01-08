@@ -3,8 +3,21 @@
 #include "melon/core/array.h"
 #include "melon/core/tstring.h"
 
+/***
+ * @module
+ * 
+ * This module defines utility functions for [`Array`](array.md) values manipulation.
+ */
+
 #include <stdlib.h>
 #include <assert.h>
+
+/***
+ * Ensures the size of an array is at least the one provided.
+ * 
+ * @arg arr The array to resize
+ * @arg size An integer with the new size
+ */
 
 static TByte resizeFunc(VM* vm)
 {
@@ -25,6 +38,16 @@ static TByte resizeFunc(VM* vm)
     return 1;
 }
 
+/***
+ * Returns the value stored at a given index for a given array without rising any error
+ * if the index does not exist.
+ * 
+ * @arg arr The array
+ * @arg index The index to lookup
+ * 
+ * @return The requeste value if present, `null` otherwise
+ */
+
 static TByte lookupFunc(VM* vm)
 {
     melM_arg(vm, arr, MELON_TYPE_ARRAY, 0);
@@ -43,6 +66,16 @@ static TByte lookupFunc(VM* vm)
 
     return 1;
 }
+
+/***
+ * Removes one or more elements from an array, resizing it if necessary.
+ * 
+ * @arg arr The array
+ * @arg start The index of the first element to remove
+ * @arg end The index of the last element to remove
+ * 
+ * @returns `true` on success, `false` otherwise
+ */
 
 static TByte deleteFunc(VM* vm)
 {

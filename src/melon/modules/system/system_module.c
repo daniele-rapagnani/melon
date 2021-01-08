@@ -3,9 +3,22 @@
 #include "melon/modules/modules.h"
 #include "melon/core/tstring.h"
 
+/***
+ * @module
+ * 
+ * This module exposes functions to query information about
+ * the VM on which the current code is running.
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
+/***
+ * Gets the version of the interpreter currently in use
+ * 
+ * @returns A string representing the version number
+ */
 
 static TByte getMelonVersion(VM* vm)
 {
@@ -14,6 +27,12 @@ static TByte getMelonVersion(VM* vm)
 
     return 1;
 }
+
+/***
+ * Returns the CPU architecture the interpreter was built for.
+ * 
+ * @returns An integer with the value 32 or 64
+ */
 
 static TByte getArchBits(VM* vm)
 {

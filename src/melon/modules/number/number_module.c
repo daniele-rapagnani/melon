@@ -2,6 +2,12 @@
 #include "melon/modules/modules.h"
 #include "melon/core/tstring.h"
 
+/***
+ * @module
+ * 
+ * This module provides basic utility functions to interact with [`Number`](number.md) values.
+ */
+
 #include <stdlib.h>
 #include <assert.h>
 
@@ -83,16 +89,24 @@ static TBool isNumber(const char* str, TSize len)
     return 1;
 }
 
+/***
+ * Converts a `String` to a `Number`.
+ * 
+ * @arg strNum A string representing a valid number.
+ * 
+ * @returns A valid `Number` or `null`.
+ */
+
 static TByte fromStringFunc(VM* vm)
 {
-    melM_arg(vm, strInt, MELON_TYPE_STRING, 0);
+    melM_arg(vm, strNum, MELON_TYPE_STRING, 0);
 
     melM_stackEnsure(&vm->stack, vm->stack.top + 1);
     Value* arrVal = melM_stackAllocRaw(&vm->stack);
     arrVal->type = MELON_TYPE_NUMBER;
 
-    String* strObj = melM_strFromObj(strInt->pack.obj);
-    const char* str = melM_strDataFromObj(strInt->pack.obj);
+    String* strObj = melM_strFromObj(strNum->pack.obj);
+    const char* str = melM_strDataFromObj(strNum->pack.obj);
 
     if (!isNumber(str, strObj->len))
     {
@@ -104,6 +118,17 @@ static TByte fromStringFunc(VM* vm)
 
     return 1;
 }
+
+/***
+ * Converts an `Integer` to a `Number` by using the rounding used by the C compiler
+ * when casting `TInteger`s to `TNumber`s.
+ * If the value to convert is already a `Number` the value is returned unmodified.
+ * If the provided value was not an `Integer` or a `Number` an error is raised.
+ * 
+ * @arg val The value to be converted to a `Number`, either an `Integer` or a `Number`
+ * 
+ * @returns A valid `Number`.
+ */
 
 static TByte fromNumberFunc(VM* vm)
 {

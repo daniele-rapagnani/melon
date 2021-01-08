@@ -9,6 +9,13 @@
 #include <assert.h>
 #include <string.h>
 
+/***
+ * @module
+ * 
+ * This module exposes the import function through its 
+ * [call operator](operators.md#operators-overloading), see also [Modules](modules.md).
+ */
+
 static Value cacheKey;
 static Value compilerKey;
 static Value importKey;
@@ -197,7 +204,7 @@ static void pushPathDirname(VM* vm, const char* path)
     }
 }
 
-TByte importModuleFunc(VM* vm)
+static TByte importModuleFunc(VM* vm)
 {
     melM_arg(vm, modName, MELON_TYPE_STRING, 0);
     melM_argOptional(vm, customModuleDir, MELON_TYPE_STRING, 1);
