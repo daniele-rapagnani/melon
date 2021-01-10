@@ -194,7 +194,7 @@ myFunc(); // Number of arguments: 0
 myFunc(1, 2); // Number of arguments: 2
 ```
 
-Standard arugments definition can also be mixed with the variadic syntax:
+Standard arguments definition can also be mixed with the variadic syntax:
 
 ```js
 let myFunc = |a, b, ...rest| => {

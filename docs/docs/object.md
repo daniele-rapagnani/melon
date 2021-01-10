@@ -152,7 +152,7 @@ One example is [operator overloading](operators.md#operators-overloading).
 
 ## Iterating over keys
 
-If you retrive the [`Iterator`](iterator.md) from an `Object` using the iterator operator `>`, you can use this iterator to iterate over the keys of an `Object`, for example in a [`for-in`](control_structures.md#for-in-loops) loop.
+If you retrieve the [`Iterator`](iterator.md) from an `Object` using the iterator operator `>`, you can use this iterator to iterate over the keys of an `Object`, for example in a [`for-in`](control_structures.md#for-in-loops) loop.
 
 ## Prototype
 
@@ -198,7 +198,7 @@ myObj.changeState(myObj);
 io.print(myObj.state); // 11
 ```
 
-The `myObj` in the example above si clearly redundant so melon provides syntactic sugar to make it more expressive:
+The `myObj` in the example above is clearly redundant so melon provides syntactic sugar to make it more expressive:
 
 ```js
 let myObj = {
