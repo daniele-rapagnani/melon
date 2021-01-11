@@ -9,7 +9,7 @@ An `Iterator` value is something that can be used to get a sequence of other val
 
 ## Getting iterators
 
-An `Iterator` value can't be created directly, but it can be create from another value by using the iterator operator `>`:
+An `Iterator` value can't be created directly, but it can be created from another value by using the iterator operator `>`:
 
 ```js
 let a = [1, 2, 3];

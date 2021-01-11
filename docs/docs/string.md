@@ -19,7 +19,7 @@ Strings are immutable, this means that whenever you want to modify a string you'
 
 ## String length
 
-You can use the size operator `#` to retrive the size of a `String`:
+You can use the size operator `#` to retrieve the size of a `String`:
 
 ```js
 let myString = "12345";
