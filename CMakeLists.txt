@@ -40,7 +40,11 @@ if ((UNIX OR MINGW) AND BUILD_32)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
 endif()
-    
+
+if (EMSCRIPTEN)
+    set(CMAKE_EXECUTABLE_SUFFIX ".html")
+endif(EMSCRIPTEN)
+
 option(CJSON_OVERRIDE_BUILD_SHARED_LIBS "" On)
 option(CJSON_BUILD_SHARED_LIBS "" Off)
 option(ENABLE_CJSON_TEST "" Off)
@@ -153,8 +157,8 @@ add_library(
     ${PLATFORM_SRCS}
 )
 
-if (MINGW)
-    message(STATUS "Disabling stack protector as it is not supported on MinGW")
+if (MINGW OR EMSCRIPTEN)
+    message(STATUS "Disabling stack protector as it is not supported on MinGW and Emscripten")
     add_definitions(-fno-stack-protector)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
@@ -222,7 +226,10 @@ if (MINGW)
     target_link_options(melon PUBLIC ${MINGW_LD_FLAGS})
     target_link_options(assembler PUBLIC ${MINGW_LD_FLAGS})
     target_link_options(disassembler PUBLIC ${MINGW_LD_FLAGS})
-    target_link_options(tests PUBLIC ${MINGW_LD_FLAGS})
 endif(MINGW)
+
+if (EMSCRIPTEN)
+    target_link_options(tests PUBLIC --embed-file ${CMAKE_SOURCE_DIR}/tests@/)
+endif (EMSCRIPTEN)
 
 target_link_libraries(tests ${LINKLIBS})
