@@ -226,6 +226,7 @@ if (MINGW)
     target_link_options(melon PUBLIC ${MINGW_LD_FLAGS})
     target_link_options(assembler PUBLIC ${MINGW_LD_FLAGS})
     target_link_options(disassembler PUBLIC ${MINGW_LD_FLAGS})
+    target_link_options(tests PUBLIC ${MINGW_LD_FLAGS})
 endif(MINGW)
 
 if (EMSCRIPTEN)
