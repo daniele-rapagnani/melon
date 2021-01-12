@@ -29,35 +29,35 @@ jobs:
           version: ${{env.EM_VERSION}}
           actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
         
-    - name: Run CMake
-      run: |
-        cd "${{ github.workspace }}"
-        mkdir build
-        cd build
-        emcmake cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON ../
-    
-    - name: Run Make
-      run: |
-        cd "${{ github.workspace }}/build"
-        make
-    
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: melon-emscripten-${{ env.BUILD_BITS }}
-        path: |
-          ${{ github.workspace }}/build/melon.js
-          ${{ github.workspace }}/build/assembler.js
-          ${{ github.workspace }}/build/disassembler.js
-          ${{ github.workspace }}/build/tests.js
-          ${{ github.workspace }}/build/tests.html
+      - name: Run CMake
+        run: |
+          cd "${{ github.workspace }}"
+          mkdir build
+          cd build
+          emcmake cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON ../
       
-    - name: Print version
-      run: |
-        cd "${{ github.workspace }}/build"
-        node melon.js --version
-    
-    - name: Run Tests
-      run: |
-        cd "${{ github.workspace }}/tests"
-        node tests.js
+      - name: Run Make
+        run: |
+          cd "${{ github.workspace }}/build"
+          make
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: melon-emscripten-${{ env.BUILD_BITS }}
+          path: |
+            ${{ github.workspace }}/build/melon.js
+            ${{ github.workspace }}/build/assembler.js
+            ${{ github.workspace }}/build/disassembler.js
+            ${{ github.workspace }}/build/tests.js
+            ${{ github.workspace }}/build/tests.html
+        
+      - name: Print version
+        run: |
+          cd "${{ github.workspace }}/build"
+          node melon.js --version
+      
+      - name: Run Tests
+        run: |
+          cd "${{ github.workspace }}/tests"
+          node tests.js
