@@ -4,6 +4,7 @@
 [![Actions Status](https://github.com/daniele-rapagnani/melon/workflows/macOS/badge.svg)](https://github.com/daniele-rapagnani/melon/actions)
 [![Actions Status](https://github.com/daniele-rapagnani/melon/workflows/Linux/badge.svg)](https://github.com/daniele-rapagnani/melon/actions)
 [![Actions Status](https://github.com/daniele-rapagnani/melon/workflows/Windows/badge.svg)](https://github.com/daniele-rapagnani/melon/actions)
+[![Actions Status](https://github.com/daniele-rapagnani/melon/workflows/Emscripten/badge.svg)](https://github.com/daniele-rapagnani/melon/actions)
 
 #### What's Melon?
 
@@ -59,6 +60,7 @@ Melon supports the following platforms:
 * macOS
 * Linux (32/64bit)
 * Windows (MinGW-w64, 32/64bit)
+* Emscripten
 
 # Compiling
 Melon uses CMake so you can use the standard way of building CMake projects:
@@ -66,6 +68,16 @@ Melon uses CMake so you can use the standard way of building CMake projects:
 ```sh
 mkdir build && cd build
 cmake ..
+make
+```
+
+## Emscripten
+
+Just run CMake with `emcmake` and you are good to go:
+
+```sh
+mkdir build && cd build
+emcmake cmake ..
 make
 ```
 
