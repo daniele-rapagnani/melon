@@ -61,5 +61,5 @@ jobs:
       
       - name: Run Tests
         run: |
-          cd "${{ github.workspace }}/tests"
+          cd "${{ github.workspace }}/build"
           node tests.js
