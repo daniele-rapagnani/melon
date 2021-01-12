@@ -1,0 +1,65 @@
+name: Emscripten
+
+on:
+  push:
+    branches: [ develop, master ]
+  pull_request:
+    branches: [ develop, master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      EM_VERSION: 2.0.12
+      EM_CACHE_FOLDER: 'emsdk-cache'
+    
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - name: Setup cache
+        id: cache-system-libraries
+        uses: actions/cache@v2
+        with:
+          path: ${{env.EM_CACHE_FOLDER}}
+          key: ${{env.EM_VERSION}}-${{ runner.os }}
+      - uses: mymindstorm/setup-emsdk@v7
+        with:
+          version: ${{env.EM_VERSION}}
+          actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
+        
+      - name: Run CMake
+        run: |
+          cd "${{ github.workspace }}"
+          mkdir build
+          cd build
+          emcmake cmake -DCMAKE_BUILD_TYPE=Debug -DSTRESS_GC=ON ../
+      
+      - name: Run Make
+        run: |
+          cd "${{ github.workspace }}/build"
+          make
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: melon-emscripten-${{ env.BUILD_BITS }}
+          path: |
+            ${{ github.workspace }}/build/melon.js
+            ${{ github.workspace }}/build/assembler.js
+            ${{ github.workspace }}/build/disassembler.js
+            ${{ github.workspace }}/build/tests.js
+            ${{ github.workspace }}/build/tests.html
+        
+      - name: Print version
+        run: |
+          cd "${{ github.workspace }}/build"
+          node melon.js --version
+      
+      - name: Run Tests
+        run: |
+          cd "${{ github.workspace }}/build"
+          node tests.js
