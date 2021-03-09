@@ -43,11 +43,19 @@ TRet melNewModule(VM* vm, const ModuleFunction* functions)
             f->name = melNewString(vm, curFunc->name, strlen(curFunc->name));
         }
 
-        melAddFunctionToObjModule(
-            vm, 
-            libObj, f->name != NULL ? f->name : MELON_SYMBOLIC_KEYS[MELON_OBJSYM_CALL].pack.obj, 
-            fObj
-        );
+        GCItem* name = f->name;
+
+        if (name == NULL)
+        {
+            assert(curFunc->symbol < MELON_OBJSYM_COUNT);
+
+            name = curFunc->symbol != MELON_OBJSYM_NONE
+                ? MELON_SYMBOLIC_KEYS[curFunc->symbol].pack.obj
+                : MELON_SYMBOLIC_KEYS[MELON_OBJSYM_CALL].pack.obj
+            ;
+        }
+
+        melAddFunctionToObjModule(vm, libObj, name, fObj);
 
         curFunc++;
     }
