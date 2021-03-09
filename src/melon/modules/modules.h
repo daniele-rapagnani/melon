@@ -29,6 +29,7 @@ typedef struct ModuleFunction
     NativeFunctionPtr func;
     TBool method;
     TBool rest;
+    MelonObjectSymbols symbol;
 } ModuleFunction;
 
 TRet melNewModule(VM* vm, const ModuleFunction* functions);
