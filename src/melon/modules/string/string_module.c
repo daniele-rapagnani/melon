@@ -10,6 +10,8 @@
 #include "melon/core/function.h"
 #include "melon/core/utils.h"
 
+#include <stdio.h>
+
 /***
  * @module
  * 
@@ -497,6 +499,7 @@ static TByte trim(VM* vm)
 
     char* resData = melM_strDataFromObj(newStr);
     TSize len = melM_strFromObj(newStr)->len;
+    resData[len] = '\0';
 
     if (len > 0)
     {
