@@ -27,7 +27,6 @@
 #define likely(x)      __builtin_expect(!!(x), 1) 
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 #else
-#warning Branch predition hinting disabled on this compiler
 #define likely(x)      do {} while(0) 
 #define unlikely(x)    do {} while(0)
 #endif

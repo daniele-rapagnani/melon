@@ -10,3 +10,6 @@
 [submodule "src/melon/cJSON"]
 	path = src/melon/libs/cJSON
 	url = https://github.com/DaveGamble/cJSON
+[submodule "src/melon/libs/dirent"]
+	path = src/melon/libs/dirent
+	url = git@github.com:tronkko/dirent.git

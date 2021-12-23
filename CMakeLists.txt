@@ -60,7 +60,8 @@ check_include_file("windows.h" HAVE_WINDOWS)
 check_include_file("execinfo.h" HAVE_EXECINFO)
 
 check_symbol_exists(arc4random_buf "stdlib.h" HAVE_ARC4RAND)
-
+if (MSVC)
+else()
 add_definitions(-Werror=incompatible-pointer-types)
 add_definitions(-Werror=implicit-function-declaration)
 add_definitions(-Werror=return-type)
@@ -70,6 +71,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 add_definitions(-Wdouble-promotion)
 add_definitions(-Wno-format)
+endif()
 
 set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
 
@@ -83,10 +85,13 @@ if (HAVE_STDIO)
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/io/platform/io_os_api_stdio.c)
 endif(HAVE_STDIO)
 
-if (HAVE_UNISTD AND HAVE_POSIX_STAT)
+if(HAVE_WINDOWS)
+    message(STATUS "Using Windows API for the FS module")
+    set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/fs/platform/fs_os_api_windows.c)
+elseif (HAVE_UNISTD AND HAVE_POSIX_STAT)
     message(STATUS "Using POSIX API for the FS module")
     set(PLATFORM_SRCS ${PLATFORM_SRCS} src/melon/modules/fs/platform/fs_os_api_posix.c)
-endif(HAVE_UNISTD AND HAVE_POSIX_STAT)
+endif(HAVE_WINDOWS)
 
 if(HAVE_WINDOWS)
     message(STATUS "Using Windows API for the path module")
@@ -165,9 +170,11 @@ endif()
 
 add_subdirectory(src/melon/libs/cJSON)
 
+if (NOT MSVC)
 # Ignores the -Werror in cJSON that 
 # causes issue with NAN casting in clang
 target_compile_options(cjson PRIVATE -Wno-error)
+endif (NOT MSVC)
 
 add_library(
     external STATIC
@@ -215,6 +222,11 @@ add_executable(
     tests
     tests/main.cpp
 )
+
+if (MSVC)
+target_include_directories(tests PRIVATE src/melon/libs/dirent/include)
+endif(MSVC)
+
 
 if (MINGW)
     # On MinGW add static linking of system libraries so that the resulting

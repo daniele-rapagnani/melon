@@ -214,7 +214,7 @@ public:
         };
 
         auto consumeWS = [&get, &infile, &peek] {
-            while(peek() && std::iswspace(peek()))
+            while(peek() && std::isspace(peek()))
             {
                 get();
             }
@@ -222,7 +222,7 @@ public:
 
         while ((c = get()))
         {
-            if (std::iswspace(c))
+            if (std::isspace(c))
             {
                 if (!token.empty())
                 {
