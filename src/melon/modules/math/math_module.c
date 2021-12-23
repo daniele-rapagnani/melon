@@ -15,6 +15,8 @@
 
 #include <assert.h>
 #include <string.h>
+
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #define melM_wrapNumFunction1Type(name, resType, member)               \

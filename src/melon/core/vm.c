@@ -2413,6 +2413,17 @@ CallFrame* melGetTopCallFrameVM(VM* vm)
     return melM_stackOffset(&vm->callStack, 0);
 }
 
+#ifdef _MSC_VER
+#define melM_case(l) \
+    case l:
+#else
+#define melM_case(l) \
+    l:
+#endif
+
+#define melM_ecase() \
+    goto FETCH_DECODE;
+
 TRet melStepOutOfFunction(VM* vm)
 {
 	TSize depth = vm->callStack.top;
@@ -2424,6 +2435,7 @@ TRet melStepOutOfFunction(VM* vm)
     Instruction* code = cf->function->code;
     Instruction* inst = NULL;
 
+#ifndef _MSC_VER
     const void* jmps[] = {
         &&MELON_OP_NOP,
         &&MELON_OP_ADD,
@@ -2493,6 +2505,7 @@ TRet melStepOutOfFunction(VM* vm)
         &&MELON_OP_STORETOPCL,
         &&MELON_OP_COALESCE,
     };
+#endif
 
     FETCH_DECODE:
         assert(cf->pc < (cf->function->size / sizeof(TVMInst)));
@@ -2500,145 +2513,147 @@ TRet melStepOutOfFunction(VM* vm)
         opCode = melM_getOpCode(inst->inst);
         cf->pc++;
 
+#ifndef _MSC_VER
         goto *jmps[opCode];
+#else
+        switch (opCode)
+        {
+#endif
+        melM_case(MELON_OP_NOP)
+            melM_ecase()
 
-        // switch (opCode)
-        // {
-        MELON_OP_NOP:
-            goto FETCH_DECODE;
-
-        MELON_OP_ADD:
+        melM_case(MELON_OP_ADD)
             opADD(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_SUB:
+        melM_case(MELON_OP_SUB)
             opSUB(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_MUL:
+        melM_case(MELON_OP_MUL)
             opMUL(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_DIV:
+        melM_case(MELON_OP_DIV)
             opDIV(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHK:
+        melM_case(MELON_OP_PUSHK)
             opPushK(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHI:
+        melM_case(MELON_OP_PUSHI)
             opPushI(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_CONCAT:
+        melM_case(MELON_OP_CONCAT)
             opConcat(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHNULL:
+        melM_case(MELON_OP_PUSHNULL)
             melM_vstackPushNull(&vm->stack);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHTRUE:
+        melM_case(MELON_OP_PUSHTRUE)
             tmpV.type = MELON_TYPE_BOOL;
             tmpV.pack.value.boolean = 1;
             melM_stackPush(&vm->stack, &tmpV);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHFALSE:
+        melM_case(MELON_OP_PUSHFALSE)
             tmpV.type = MELON_TYPE_BOOL;
             tmpV.pack.value.boolean = 0;
             melM_stackPush(&vm->stack, &tmpV);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_JMP:
+        melM_case(MELON_OP_JMP)
             opJmp(vm, inst, &cf->pc);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_TESTTRUE:
+        melM_case(MELON_OP_TESTTRUE)
             opTestTrue(vm, inst, &cf->pc);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_TESTFALSE:
+        melM_case(MELON_OP_TESTFALSE)
             opTestFalse(vm, inst, &cf->pc);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_TESTNULL:
+        melM_case(MELON_OP_TESTNULL)
             opTestNull(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_EQ:
+        melM_case(MELON_OP_EQ)
             opEq(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_LTE:
+        melM_case(MELON_OP_LTE)
             opCmp(vm, MELON_OP_LTE);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_GTE:
+        melM_case(MELON_OP_GTE)
             opCmp(vm, MELON_OP_GTE);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_GT:
+        melM_case(MELON_OP_GT)
             opCmp(vm, MELON_OP_GT);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_LT:
+        melM_case(MELON_OP_LT)
             opCmp(vm, MELON_OP_LT);
-            goto FETCH_DECODE;
-            
-        MELON_OP_HALT:
+            melM_ecase()
+
+        melM_case(MELON_OP_HALT)
             return 1;
 
-        MELON_OP_NEWOBJ:
+        melM_case(MELON_OP_NEWOBJ)
             opNewObj(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_SETOBJ:
+        melM_case(MELON_OP_SETOBJ)
             opSetObj(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_GETOBJ:
+        melM_case(MELON_OP_GETOBJ)
             opGetObj(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_SETGLOBAL:
+        melM_case(MELON_OP_SETGLOBAL)
             opSetGlobal(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_GETGLOBAL:
+        melM_case(MELON_OP_GETGLOBAL)
             opGetGlobal(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHLOC:
+        melM_case(MELON_OP_PUSHLOC)
             opLoad(vm, inst, cf);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_STORELOC:
+        melM_case(MELON_OP_STORELOC)
             opStore(vm, inst, cf);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_CALL:
-            // @NOTE: we increment pc here
+        melM_case(MELON_OP_CALL)
+            // @NODE: we increment pc here
             //        because the cf pointer may be
             //        invalidated by opCall ending up
             //        reallocing the call stack
             opCall(vm, inst, 0);
             cf = melM_stackTop(&vm->callStack);
             code = cf->function->code;
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_CALLTAIL:
+        melM_case(MELON_OP_CALLTAIL)
             opCall(vm, inst, 1);
-            goto FETCH_DECODE; // We don't want pc to increment
+            melM_ecase() // We don't want pc to increment
 
-        MELON_OP_NEWCL:
+        melM_case(MELON_OP_NEWCL)
             opNewClosure(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_RET:
+        melM_case(MELON_OP_RET)
             opReturn(vm, inst);
-            
+
             if (vm->callStack.top < depth)
             {
                 return 0;
@@ -2646,147 +2661,151 @@ TRet melStepOutOfFunction(VM* vm)
 
             cf = melM_stackTop(&vm->callStack);
             code = cf->function->code;
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_DUMPINFO:
+        melM_case(MELON_OP_DUMPINFO)
             opDumpInfo(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHUPVAL:
+        melM_case(MELON_OP_PUSHUPVAL)
             opPushUpval(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_STOREUPVAL:
+        melM_case(MELON_OP_STOREUPVAL)
             opStoreUpval(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_POP:
+        melM_case(MELON_OP_POP)
             melM_stackPop(&vm->stack);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSH:
+        melM_case(MELON_OP_PUSH)
             opPush(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_NEWARR:
+        melM_case(MELON_OP_NEWARR)
             opNewArray(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_GETARR:
+        melM_case(MELON_OP_GETARR)
             opGetArray(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_GETIARR:
+        melM_case(MELON_OP_GETIARR)
             opGetIArray(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_SETARR:
+        melM_case(MELON_OP_SETARR)
             opSetArray(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_SETIARR:
+        melM_case(MELON_OP_SETIARR)
             opSetIArray(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHARR:
+        melM_case(MELON_OP_PUSHARR)
             opPushArray(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_SIZEARR:
+        melM_case(MELON_OP_SIZEARR)
             opSizeArray(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_GC:
+        melM_case(MELON_OP_GC)
             melTriggerGC(vm, &vm->gc);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_OR:
+        melM_case(MELON_OP_OR)
             opLogicOr(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_AND:
+        melM_case(MELON_OP_AND)
             opLogicAnd(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_NOT:
+        melM_case(MELON_OP_NOT)
             opLogicNot(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_SLICE:
+        melM_case(MELON_OP_SLICE)
             opSlice(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_BLESS:
+        melM_case(MELON_OP_BLESS)
             opBless(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHTHIS:
+        melM_case(MELON_OP_PUSHTHIS)
             opPushThis(vm, cf);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_NEG:
+        melM_case(MELON_OP_NEG)
             opNEG(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_NEWSYMBOL:
+        melM_case(MELON_OP_NEWSYMBOL)
             opNewSymbol(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHBLESSING:
+        melM_case(MELON_OP_PUSHBLESSING)
             opPushBlessing(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_PUSHITER:
+        melM_case(MELON_OP_PUSHITER)
             opPushIterator(vm, inst);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_NEXTITER:
+        melM_case(MELON_OP_NEXTITER)
             opIteratorNext(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_SETUPFOR:
+        melM_case(MELON_OP_SETUPFOR)
             opSetupFor(vm, inst, cf);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_BITLSHIFT:
+        melM_case(MELON_OP_BITLSHIFT)
             opBitLeftShiftInt(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_BITRSHIFT:
+        melM_case(MELON_OP_BITRSHIFT)
             opBitRightShiftInt(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_BITAND:
+        melM_case(MELON_OP_BITAND)
             opBitAndInt(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_BITOR:
+        melM_case(MELON_OP_BITOR)
             opBitOrInt(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_BITNOT:
+        melM_case(MELON_OP_BITNOT)
             opBitNotInt(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_BITXOR:
+        melM_case(MELON_OP_BITXOR)
             opBitXorInt(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_MOD:
+        melM_case(MELON_OP_MOD)
             opModInt(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_POW:
+        melM_case(MELON_OP_POW)
             opPow(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_STORETOPCL:
+        melM_case(MELON_OP_STORETOPCL)
             opStoreTopCL(vm, inst, cf);
-            goto FETCH_DECODE;
+            melM_ecase()
 
-        MELON_OP_COALESCE:
+        melM_case(MELON_OP_COALESCE)
             opCoalesce(vm);
-            goto FETCH_DECODE;
+            melM_ecase()
+
+#ifdef _MSC_VER
+        } // switch
+#endif
 
 	return 0;
 }

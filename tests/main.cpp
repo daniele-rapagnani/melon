@@ -120,6 +120,11 @@ namespace {
         };
         
         s.writer = [] (void* ctx, const void* data, TSize num) -> TRet {
+            if (num == 0)
+            {
+                return 0;
+            }
+
             std::vector<TByte>& outData = *static_cast<std::vector<TByte>*>(ctx);
             const TByte* inData = static_cast<const TByte*>(data);
 

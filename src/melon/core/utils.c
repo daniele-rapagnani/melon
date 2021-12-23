@@ -14,7 +14,7 @@
 #elif defined(unix) || defined(__unix__) || defined(__unix)
 #include <time.h>
 #include <sys/time.h>
-#elif defined(__MINGW32__)
+#elif defined(__MINGW32__) || defined(_WIN32)
 #include <windows.h>
 #endif
 
@@ -655,7 +655,7 @@ void melGetTimeHD(MelTimeHD* out)
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
     out->nanoSecs = ts.tv_nsec;
     out->secs = ts.tv_sec;
-#elif defined(__MINGW32__)
+#elif defined(__MINGW32__) || defined(_WIN32)
     LARGE_INTEGER li;
 
     if(!QueryPerformanceFrequency(&li))
